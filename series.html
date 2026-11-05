@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SHARKTV - Series</title>
+
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#000;color:#fff;font-family:Arial,sans-serif;overflow-x:hidden}
+body{-webkit-tap-highlight-color:transparent}
+
+.header{
+position:fixed;top:0;left:0;width:100%;height:320px;
+background:#000 center/cover no-repeat;
+display:flex;align-items:center;padding:20px;overflow:hidden;z-index:10
+}
+.header:before{
+content:"";position:absolute;inset:0;
+background:linear-gradient(to right,rgba(0,0,0,.9),rgba(0,0,0,.15) 65%,transparent),
+linear-gradient(to bottom,transparent 25%,#000 100%);
+pointer-events:none
+}
+.header-info{position:relative;z-index:2;max-width:500px;width:100%}
+.header-info img{max-width:300px;max-height:80px;display:block;object-fit:contain;object-position:left;margin-bottom:12px}
+.header h1{font-size:26px;margin:0 0 8px}
+.details{font-size:13px;font-weight:bold;margin:5px 0;line-height:1.6}
+.overview{font-size:12px;line-height:1.45;max-width:450px;max-height:90px;overflow:auto;margin:8px 0 0}
+
+.content{padding:20px;margin-top:320px;min-height:200px}
+.movie-row{display:grid;grid-template-columns:repeat(8,105px);gap:12px;margin-top:15px}
+.movie{display:block;width:105px;height:160px;cursor:pointer;outline:none;text-decoration:none;overflow:hidden}
+.movie[hidden]{display:none!important}
+.movie img{width:105px;height:160px;object-fit:cover;display:block;border:3px solid transparent}
+.movie.selected img,.movie:focus-visible img{border-color:#e50914}
+.movie,.movie:focus,.movie:focus-visible{outline:none!important;box-shadow:none!important;background:transparent!important}
+
+.search-container{position:fixed;top:20px;right:30px;display:flex;align-items:center;gap:10px;z-index:1001}
+.search-button{background:transparent;border:0;padding:6px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.search-button svg{width:26px;height:26px;fill:#fff}
+.search-button:focus{transform:scale(1.3);outline:none}
+.search-input{width:0;min-width:0;padding:8px 0;border:0;border-radius:20px;background:#111;color:#fff;outline:none;opacity:0;pointer-events:none;transition:.2s}
+.search-input.active{width:220px;padding:9px 12px;border:1px solid #777;opacity:1;pointer-events:auto}
+
+.season-row{display:none;margin-bottom:24px}
+.season-title{font-size:18px;font-weight:bold;margin:0 0 10px}
+.episodes-list{display:flex;gap:12px;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;padding-bottom:8px}
+.episodes-list::-webkit-scrollbar{display:none}
+.episode-thumb{
+position:relative;flex:0 0 auto;width:220px;height:130px;
+cursor:pointer;overflow:hidden;border:3px solid transparent;
+border-radius:4px;background:transparent;text-decoration:none;
+outline:none!important;box-shadow:none!important
+}
+.episode-thumb img{width:100%;height:124px;object-fit:cover;display:block}
+.episode-thumb.selected,.episode-thumb:focus{border-color:#e50914!important}
+.episode-thumb img.placeholder{object-fit:contain;background:#171717}
+.status{color:#aaa;padding:10px 0;font-size:14px}
+
+@media(max-width:900px){.movie-row{grid-template-columns:repeat(5,105px)}}
+@media(max-width:600px){
+.header{height:260px;padding:15px}
+.header-info img{max-width:220px;max-height:65px}
+.header h1{font-size:21px}
+.overview{font-size:11px;max-height:65px}
+.content{margin-top:260px;padding:15px}
+.movie-row{grid-template-columns:repeat(3,105px);gap:10px}
+.episode-thumb{width:180px;height:104px}
+.episode-thumb img{height:98px}
+.search-container{right:15px;top:15px}
+.search-input.active{width:170px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="search-container" id="search-container">
+    <button id="search-button" class="search-button" type="button" aria-label="Buscar series">
+        <svg viewBox="0 0 24 24">
+            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5
+            6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5
+            4.99L20.49 19l-4.99-5zm-6 0C8.01 14 6 11.99 6 9.5
+            S8.01 5 10.5 5 15 7.01 15 9.5 12.99 14 10.5 14z"/>
+        </svg>
+    </button>
+    <input id="search" class="search-input" type="text"
+        placeholder="Buscar serie..." autocomplete="off">
+</div>
+
+<div class="header" id="header">
+    <div class="header-info" id="header-info"></div>
+</div>
+
+<div class="content">
+    <div id="series-grid" class="movie-row"></div>
+    <div id="series-container"></div>
+    <p id="status" class="status">Cargando series...</p>
+</div>
+
+<script>
+'use strict';
+
+const header=document.getElementById('header');
+const headerInfo=document.getElementById('header-info');
+const grid=document.getElementById('series-grid');
+const container=document.getElementById('series-container');
+const statusEl=document.getElementById('status');
+const searchInput=document.getElementById('search');
+const searchButton=document.getElementById('search-button');
+
+const seriesId=new URLSearchParams(location.search).get('id');
+
+let seriesList=[];
+let selectedSeries=null;
+
+let seasonRows=[];
+let episodesBySeason=[];
+let episodeRecords=[];
+let currentSeasonIndex=0;
+let currentEpisodeIndex=0;
+
+/* LEER JSON */
+
+async function readJson(file){
+    const response=await fetch('./'+file+'?t='+Date.now(),{cache:'no-store'});
+    if(!response.ok)throw new Error(file+' HTTP '+response.status);
+    return response.json();
+}
+
+function titleOf(s){
+    return s.title_manual||s.title||s.name||'Serie';
+}
+
+function posterOf(s){
+    return s.poster_manual||s.poster||'';
+}
+
+function logoOf(s){
+    return s.logo_manual||s.logo||'';
+}
+
+function backdropOf(s){
+    return s.backdrop_manual||s.backdrop||'';
+}
+
+function yearOf(s){
+    return s.first_air_date?String(s.first_air_date).slice(0,4):'';
+}
+
+function genresOf(s){
+    if(Array.isArray(s.genres)){
+        return s.genres.map(x=>typeof x==='string'?x:x.name||'')
+            .filter(Boolean).join(', ');
+    }
+    return s.genres||'';
+}
+
+function ageOf(s){
+    let age=s.age_rating_manual||s.age_rating||'';
+    if(age&&!String(age).endsWith('+'))age=String(age)+'+';
+    return age;
+}
+
+function qualityOf(s){
+    return s.quality_manual||s.quality||'';
+}
+
+/* ABRIR VLC */
+
+function abrirVLC(url){
+    if(!url){
+        alert('Este episodio todavía no tiene enlace de reproducción.');
+        return;
+    }
+
+    try{
+        const media=new URL(url);
+
+        if(media.protocol!=='https:'&&media.protocol!=='http:'){
+            alert('El enlace de reproducción no es válido.');
+            return;
+        }
+
+        const intent=
+            'intent://'+media.host+media.pathname+media.search+
+            '#Intent;scheme='+media.protocol.replace(':','')+
+            ';package=org.videolan.vlc;type=video/*;end';
+
+        window.location.href=intent;
+
+    }catch(error){
+        console.error(error);
+        alert('No se pudo abrir el episodio en VLC.');
+    }
+}
+
+/* CARGAR CATÁLOGO DE SERIES */
+
+async function loadSeries(){
+    try{
+        const data=await readJson('series.json');
+
+        if(!Array.isArray(data))throw new Error('series.json no es una lista');
+
+        seriesList=data;
+        renderSeries();
+
+    }catch(error){
+        console.error(error);
+        statusEl.hidden=false;
+        statusEl.textContent='No se pudo cargar series.json.';
+    }
+}
+
+function renderSeries(){
+    grid.replaceChildren();
+
+    if(!seriesList.length){
+        statusEl.hidden=false;
+        statusEl.textContent='Todavía no hay series disponibles.';
+        return;
+    }
+
+    statusEl.hidden=true;
+
+    seriesList.forEach(serie=>{
+        const card=document.createElement('a');
+        card.className='movie';
+        card.href='#';
+        card.tabIndex=0;
+
+        card.dataset.id=serie.id||serie.tmdb_id||'';
+        card.dataset.title=titleOf(serie);
+        card.dataset.logo=logoOf(serie);
+        card.dataset.banner=backdropOf(serie);
+        card.dataset.overview=serie.overview||'';
+        card.dataset.year=yearOf(serie);
+        card.dataset.genres=genresOf(serie);
+        card.dataset.age=ageOf(serie);
+        card.dataset.quality=qualityOf(serie);
+
+        const img=document.createElement('img');
+        img.alt='';
+        img.loading='lazy';
+        img.draggable=false;
+        img.src=posterOf(serie);
+        img.onerror=()=>img.style.visibility='hidden';
+
+        card.appendChild(img);
+        grid.appendChild(card);
+
+        card.addEventListener('focus',()=>selectSeries(card));
+        card.addEventListener('click',event=>{
+            event.preventDefault();
+            openSeries(card.dataset.id);
+        });
+    });
+
+    filterSeries();
+}
+
+function selectSeries(card){
+    if(!card||card.hidden)return;
+
+    selectedSeries=card;
+
+    document.querySelectorAll('.movie').forEach(x=>{
+        x.classList.toggle('selected',x===card);
+    });
+
+    header.style.backgroundImage=card.dataset.banner
+        ?'url("'+card.dataset.banner+'")'
+        :'none';
+
+    headerInfo.replaceChildren();
+
+    if(card.dataset.logo){
+        const img=document.createElement('img');
+        img.src=card.dataset.logo;
+        img.alt=card.dataset.title;
+        img.onerror=()=>{
+            headerInfo.replaceChildren();
+            const h=document.createElement('h1');
+            h.textContent=card.dataset.title;
+            headerInfo.appendChild(h);
+        };
+        headerInfo.appendChild(img);
+    }else{
+        const h=document.createElement('h1');
+        h.textContent=card.dataset.title;
+        headerInfo.appendChild(h);
+    }
+
+    const details=document.createElement('div');
+    details.className='details';
+    details.textContent=[
+        card.dataset.year,
+        card.dataset.genres,
+        card.dataset.quality,
+        card.dataset.age
+    ].filter(Boolean).join(' | ');
+    headerInfo.appendChild(details);
+
+    const overview=document.createElement('p');
+    overview.className='overview';
+    overview.textContent=card.dataset.overview;
+    headerInfo.appendChild(overview);
+}
+
+function openSeries(id){
+    if(!id)return;
+    location.href='series.html?id='+encodeURIComponent(id);
+}
+
+function visibleSeries(){
+    return [...grid.querySelectorAll('.movie:not([hidden])')];
+}
+
+function gridColumns(){
+    if(innerWidth<=600)return 3;
+    if(innerWidth<=900)return 5;
+    return 8;
+}
+
+function focusSeries(card){
+    if(!card)return;
+    card.focus({preventScroll:true});
+    selectSeries(card);
+
+    const r=card.getBoundingClientRect();
+    if(r.top<325)scrollBy(0,r.top-325);
+    else if(r.bottom>innerHeight-12)scrollBy(0,r.bottom-innerHeight+12);
+}
+
+function firstSeries(){
+    const cards=visibleSeries();
+    if(cards.length)focusSeries(cards[0]);
+}
+
+function filterSeries(){
+    const q=searchInput.value.trim().toLocaleLowerCase('es');
+    let first=null;
+
+    document.querySelectorAll('#series-grid .movie').forEach(card=>{
+        const text=[
+            card.dataset.title,
+            card.dataset.year,
+            card.dataset.genres,
+            card.dataset.quality,
+            card.dataset.age,
+            card.dataset.overview
+        ].join(' ').toLocaleLowerCase('es');
+
+        card.hidden=!text.includes(q);
+        if(!card.hidden&&!first)first=card;
+    });
+
+    if(first)selectSeries(first);
+}
+
+/* PREPARAR EPISODIOS Y TEMPORADAS */
+
+function normalizarTemporadas(datos){
+    if(!Array.isArray(datos))return [];
+
+    /* Formato agrupado: [{numero:1, capitulos:[...]}] */
+    if(datos.length&&Array.isArray(datos[0].capitulos)){
+        return datos.slice().sort((a,b)=>Number(a.numero)-Number(b.numero));
+    }
+
+    /* Formato plano generado por el actualizador AllDebrid */
+    const grupos={};
+
+    datos.forEach(ep=>{
+        const temporada=Number(ep.temporada||ep.season||1);
+
+        if(!grupos[temporada])grupos[temporada]=[];
+
+        grupos[temporada].push({
+            ...ep,
+            numero:Number(ep.numero||ep.episodio||0)
+        });
+    });
+
+    return Object.keys(grupos)
+        .map(numero=>({
+            numero:Number(numero),
+            capitulos:grupos[numero].sort((a,b)=>a.numero-b.numero)
+        }))
+        .sort((a,b)=>a.numero-b.numero);
+}
+
+function crearTemporada(temporada,index){
+    const row=document.createElement('div');
+    row.className='season-row';
+    row.dataset.seasonNumber=temporada.numero;
+
+    const title=document.createElement('div');
+    title.className='season-title';
+    title.textContent='Temporada '+temporada.numero;
+
+    const list=document.createElement('div');
+    list.className='episodes-list';
+
+    const eps=(temporada.capitulos||[]).slice()
+        .sort((a,b)=>Number(a.numero)-Number(b.numero));
+
+    eps.forEach((ep,epIndex)=>{
+        const item=document.createElement('a');
+        item.className='episode-thumb';
+        item.href='#';
+        item.tabIndex=0;
+        item.dataset.season=String(index);
+        item.dataset.episode=String(epIndex);
+
+        const img=document.createElement('img');
+        img.alt='';
+        img.loading='lazy';
+        img.draggable=false;
+
+        if(ep.imagen){
+            img.src=ep.imagen;
+            img.onerror=()=>img.classList.add('placeholder');
+        }else{
+            img.classList.add('placeholder');
+        }
+
+        item.appendChild(img);
+
+        item.addEventListener('focus',()=>{
+            currentSeasonIndex=index;
+            currentEpisodeIndex=epIndex;
+            updateSelected();
+        });
+
+        item.addEventListener('click',event=>{
+            event.preventDefault();
+            currentSeasonIndex=index;
+            currentEpisodeIndex=epIndex;
+            updateSelected();
+            abrirVLC(ep.url||ep.stream_url||'');
+        });
+
+        list.appendChild(item);
+    });
+
+    row.append(title,list);
+    container.appendChild(row);
+
+    seasonRows.push(row);
+    episodesBySeason.push([...list.querySelectorAll('.episode-thumb')]);
+    episodeRecords.push(eps);
+}
+
+/* FICHA DEL EPISODIO */
+
+function actualizarFicha(ep){
+    const season=Number(
+        seasonRows[currentSeasonIndex]?.dataset.seasonNumber||1
+    );
+
+    const numero=String(ep.numero||1).padStart(2,'0');
+
+    const title=document.getElementById('episode-title');
+    const overview=document.getElementById('episode-overview');
+
+    if(title){
+        title.textContent=
+            'T'+season+' - E'+numero+' - '+(ep.titulo||'Capítulo '+numero);
+    }
+
+    if(overview){
+        overview.textContent=
+            ep.sinopsis||ep.overview||'Sin sinopsis disponible para este capítulo.';
+    }
+}
+
+function updateSelected(){
+    document.querySelectorAll('.episode-thumb').forEach(x=>{
+        x.classList.remove('selected');
+    });
+
+    const item=(episodesBySeason[currentSeasonIndex]||[])[currentEpisodeIndex];
+    const ep=(episodeRecords[currentSeasonIndex]||[])[currentEpisodeIndex];
+
+    if(ep)actualizarFicha(ep);
+
+    if(item){
+        item.classList.add('selected');
+        item.focus({preventScroll:true});
+        item.scrollIntoView({
+            block:'nearest',
+            inline:'nearest',
+            behavior:'auto'
+        });
+    }
+}
+
+function mostrarTemporada(index){
+    if(index<0||index>=seasonRows.length)return;
+
+    seasonRows.forEach((row,i)=>{
+        row.style.display=i===index?'block':'none';
+    });
+
+    currentSeasonIndex=index;
+    currentEpisodeIndex=0;
+    updateSelected();
+}
+
+function openCurrentEpisode(){
+    const ep=(episodeRecords[currentSeasonIndex]||[])[currentEpisodeIndex];
+    if(!ep)return;
+    abrirVLC(ep.url||ep.stream_url||'');
+}
+
+/* CARGAR DETALLE DE SERIE */
+
+async function loadSeriesDetail(){
+    try{
+        const [series,episodeData]=await Promise.all([
+            readJson('series.json'),
+            readJson('episodios.json')
+        ]);
+
+        const serie=series.find(s=>
+            String(s.id||s.tmdb_id)===String(seriesId)
+        );
+
+        if(!serie){
+            statusEl.textContent='No se encontró la serie.';
+            return;
+        }
+
+        header.style.backgroundImage=backdropOf(serie)
+            ?'url("'+backdropOf(serie)+'")'
+            :'none';
+
+        headerInfo.replaceChildren();
+
+        const logo=logoOf(serie);
+
+        if(logo){
+            const img=document.createElement('img');
+            img.src=logo;
+            img.alt=titleOf(serie);
+            img.onerror=()=>{
+                headerInfo.replaceChildren();
+                const h=document.createElement('h1');
+                h.textContent=titleOf(serie);
+                headerInfo.appendChild(h);
+            };
+            headerInfo.appendChild(img);
+        }else{
+            const h=document.createElement('h1');
+            h.textContent=titleOf(serie);
+            headerInfo.appendChild(h);
+        }
+
+        const epTitle=document.createElement('h2');
+        epTitle.className='episode-title';
+        epTitle.id='episode-title';
+        headerInfo.appendChild(epTitle);
+
+        const overview=document.createElement('p');
+        overview.className='overview';
+        overview.id='episode-overview';
+        overview.textContent=serie.overview||'';
+        headerInfo.appendChild(overview);
+
+        const temporadas=normalizarTemporadas(
+            episodeData[String(serie.id||serie.tmdb_id)]||[]
+        );
+
+        grid.hidden=true;
+        document.getElementById('search-container').hidden=true;
+        container.replaceChildren();
+
+        seasonRows=[];
+        episodesBySeason=[];
+        episodeRecords=[];
+
+        temporadas.forEach((t,i)=>crearTemporada(t,i));
+
+        if(!seasonRows.length){
+            statusEl.hidden=false;
+            statusEl.textContent='Todavía no hay episodios disponibles para esta serie.';
+            return;
+        }
+
+        statusEl.hidden=true;
+        mostrarTemporada(0);
+
+    }catch(error){
+        console.error(error);
+        statusEl.hidden=false;
+        statusEl.textContent='No se pudo cargar la serie. Comprueba los JSON.';
+    }
+}
+
+/* BUSCADOR */
+
+function openSearch(){
+    searchInput.classList.add('active');
+    searchInput.focus();
+}
+
+function closeSearch(){
+    searchInput.value='';
+    filterSeries();
+    searchInput.classList.remove('active');
+    searchInput.blur();
+    searchButton.focus({preventScroll:true});
+}
+
+searchButton.addEventListener('click',openSearch);
+searchInput.addEventListener('input',filterSeries);
+
+/* MANDO ANDROID TV */
+
+document.addEventListener('keydown',event=>{
+    const k=event.key;
+    const c=event.keyCode||event.which;
+
+    const up=k==='ArrowUp'||c===38||c===19;
+    const down=k==='ArrowDown'||c===40||c===20;
+    const left=k==='ArrowLeft'||c===37||c===21;
+    const right=k==='ArrowRight'||c===39||c===22;
+    const enter=k==='Enter'||c===13||c===23||c===66;
+    const back=k==='Escape'||c===27||c===4;
+
+    const active=document.activeElement;
+
+    if(back){
+        event.preventDefault();
+        if(seriesId){
+            location.href='series.html';
+        }else{
+            location.href='index.html';
+        }
+        return;
+    }
+
+    /* MODO CATÁLOGO */
+    if(!seriesId){
+        if(active===searchInput){
+            if(up){
+                event.preventDefault();
+                searchButton.focus();
+            }else if(down||enter){
+                event.preventDefault();
+                firstSeries();
+            }
+            return;
+        }
+
+        if(active===searchButton){
+            if(enter){
+                event.preventDefault();
+                openSearch();
+            }else if(down){
+                event.preventDefault();
+                firstSeries();
+            }
+            return;
+        }
+
+        const card=active.closest&&active.closest('.movie');
+
+        if(!card){
+            if(down||right){
+                event.preventDefault();
+                firstSeries();
+            }else if(up||left){
+                event.preventDefault();
+                searchButton.focus();
+            }
+            return;
+        }
+
+        const cards=visibleSeries();
+        const index=cards.indexOf(card);
+        const cols=gridColumns();
+        let next=index;
+
+        if(enter){
+            event.preventDefault();
+            openSeries(card.dataset.id);
+            return;
+        }
+
+        if(right)next=Math.min(index+1,cards.length-1);
+        else if(left)next=index%cols===0?index:index-1;
+        else if(down)next=Math.min(index+cols,cards.length-1);
+        else if(up){
+            if(index<cols){
+                event.preventDefault();
+                searchButton.focus();
+                return;
+            }
+            next=index-cols;
+        }else return;
+
+        event.preventDefault();
+        focusSeries(cards[next]);
+        return;
+    }
+
+    /* MODO DETALLE DE SERIE */
+    if(!seasonRows.length)return;
+
+    const current=episodesBySeason[currentSeasonIndex]||[];
+
+    if(enter){
+        event.preventDefault();
+        openCurrentEpisode();
+        return;
+    }
+
+    if(left||right){
+        if(!current.length)return;
+
+        event.preventDefault();
+        currentEpisodeIndex=Math.max(
+            0,
+            Math.min(
+                current.length-1,
+                currentEpisodeIndex+(right?1:-1)
+            )
+        );
+        updateSelected();
+        return;
+    }
+
+    if(up||down){
+        event.preventDefault();
+
+        const next=currentSeasonIndex+(down?1:-1);
+
+        if(next>=0&&next<seasonRows.length){
+            mostrarTemporada(next);
+        }
+    }
+},true);
+
+/* INICIO */
+
+async function iniciar(){
+    if(seriesId){
+        await loadSeriesDetail();
+    }else{
+        await loadSeries();
+        requestAnimationFrame(()=>requestAnimationFrame(firstSeries));
+    }
+}
+
+iniciar();
+</script>
+</body>
+</html>
