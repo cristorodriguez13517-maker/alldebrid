@@ -1,8 +1,29 @@
 [
   {
+    "magnet_id": 837839369,
+    "file_path": "Resident Evil (2026) [4K 2160P][Esp]/Resident Evil (2026) [4K 2160P][Esp].mkv",
+    "stream_url": "https://alldebrid.com/f/zRZDFmNdoIdATLgw62ZMOmC6KjaCD60mvE5i2AdS0F4",
+    "title": "Resident Evil",
+    "tmdb_id": 1423191,
+    "poster": "https://image.tmdb.org/t/p/w780/vrLEVObLGbUinE4sC4Lqao2dK0E.jpg",
+    "backdrop": "https://image.tmdb.org/t/p/original/3icyRAqgakNcQn6aDVz9libFmBA.jpg",
+    "logo": "https://image.tmdb.org/t/p/w500/m9WqiXJWy1gARXt7RIeS3l8eRpp.png",
+    "overview": "Película basada en la saga de videojuegos de Capcom del mismo nombre. En una reinvención totalmente nueva, el mensajero médico Bryan se ve inmerso en una carrera de acción sin descanso por la supervivencia, mientras el caos se desata a su alrededor.",
+    "release_date": "2026-09-16",
+    "runtime": 95,
+    "genres": [
+      "Terror",
+      "Ciencia ficción",
+      "Aventura"
+    ],
+    "quality": "4K",
+    "age_rating": "16+",
+    "match_status": "encontrada"
+  },
+  {
     "magnet_id": 693597124,
     "file_path": "Carrera de Bestias (2026) [Bluray 1080p][Esp]/Carrera de Bestias (2026) [Bluray 1080p][Esp].mkv",
-    "stream_url": "https://z2a3b4.debrid.it/dl/5ec3ekw733e/Carrera%20de%20Bestias%20%282026%29%20%5BBluray%201080p%5D%5BEsp%5D.mkv",
+    "stream_url": "https://alldebrid.com/f/RJNs6BmngVqbrQB_v_aK8bVIpJocpCn5YUTEuvHTXag",
     "title": "Carrera de bestias",
     "tmdb_id": 1263532,
     "poster": "https://image.tmdb.org/t/p/w780/6Qwd9xKb1TnO7juMlZqHNiiJLWm.jpg",
