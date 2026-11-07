@@ -41,23 +41,5 @@
     "age_rating": "",
     "match_status": "encontrada"
   },
-  {
-    "magnet_id": 840421327,
-    "file_path": "El vestido (2026) [Bluray 1080p][Esp]/El vestido (2026) [Bluray 1080p][Esp].mkv",
-    "stream_url": "https://alldebrid.com/f/a6m95t0-wYf3d3XRbb5OUT6dLT7Q8fT3moeaUUUYE48",
-    "title": "El vestido",
-    "tmdb_id": 1474226,
-    "poster": "https://image.tmdb.org/t/p/w780/2SoHOeFWgF4pP9yVlEch76ja7r5.jpg",
-    "backdrop": "https://image.tmdb.org/t/p/original/hXRw0AVY8avc0koUXj2rMY6q2N8.jpg",
-    "logo": "https://image.tmdb.org/t/p/w500/k9rCF3oTTWFiPYiNyVfQeBntpDe.png",
-    "overview": "Una mujer y su hija se mudan a una casa nueva en las afueras para intentar empezar de cero, pero lo que empieza como una segunda oportunidad desembocará en una sucesión de eventos extraños.",
-    "release_date": "2026-02-13",
-    "runtime": 75,
-    "genres": [
-      "Terror"
-    ],
-    "quality": "FHD",
-    "age_rating": "",
-    "match_status": "encontrada"
-  }
+
 ]
