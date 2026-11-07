@@ -43,9 +43,7 @@ def leer(nombre, defecto):
         return defecto
 
     try:
-        return json.loads(
-            ruta.read_text(encoding="utf-8")
-        )
+        return json.loads(ruta.read_text(encoding="utf-8"))
     except Exception as error:
         raise Exception(
             f"No se puede leer {nombre}. "
@@ -62,15 +60,8 @@ def guardar(nombre, datos):
         indent=2
     )
 
-    temporal = ruta.with_suffix(
-        ruta.suffix + ".tmp"
-    )
-
-    temporal.write_text(
-        contenido,
-        encoding="utf-8"
-    )
-
+    temporal = ruta.with_suffix(ruta.suffix + ".tmp")
+    temporal.write_text(contenido, encoding="utf-8")
     temporal.replace(ruta)
 
 
@@ -79,7 +70,6 @@ def guardar(nombre, datos):
 # ==========================================================
 
 def alldebrid(endpoint, datos=None):
-
     respuesta = session.post(
         AD + endpoint,
         data=datos or {},
@@ -87,19 +77,15 @@ def alldebrid(endpoint, datos=None):
     )
 
     respuesta.raise_for_status()
-
     resultado = respuesta.json()
 
     if resultado.get("status") != "success":
-        raise Exception(
-            f"Error AllDebrid: {resultado}"
-        )
+        raise Exception(f"Error AllDebrid: {resultado}")
 
     return resultado.get("data", {})
 
 
 def obtener_magnets():
-
     data = alldebrid(
         "/v4.1/magnet/status",
         {"status": "ready"}
@@ -109,30 +95,20 @@ def obtener_magnets():
 
 
 def recorrer_archivos(elementos, ruta=""):
-
     encontrados = []
 
     for elemento in elementos or []:
-
         nombre = elemento.get("n", "")
-
         ruta_actual = f"{ruta}/{nombre}".strip("/")
-
         hijos = elemento.get("e")
 
         if isinstance(hijos, list):
-
             encontrados.extend(
-                recorrer_archivos(
-                    hijos,
-                    ruta_actual
-                )
+                recorrer_archivos(hijos, ruta_actual)
             )
-
             continue
 
         if nombre.lower().endswith(VIDEO_EXTENSIONS):
-
             encontrados.append({
                 "name": nombre,
                 "path": ruta_actual,
@@ -144,19 +120,14 @@ def recorrer_archivos(elementos, ruta=""):
 
 
 def obtener_archivos(magnet_id):
-
     data = alldebrid(
         "/v4/magnet/files",
         {"id[]": magnet_id}
     )
 
     for magnet in data.get("magnets", []):
-
         if str(magnet.get("id")) == str(magnet_id):
-
-            return recorrer_archivos(
-                magnet.get("files", [])
-            )
+            return recorrer_archivos(magnet.get("files", []))
 
     return []
 
@@ -166,16 +137,10 @@ def obtener_archivos(magnet_id):
 # ==========================================================
 
 def clave_archivo(magnet_id, archivo):
-
-    return (
-        str(magnet_id)
-        + "|"
-        + str(archivo["path"])
-    )
+    return str(magnet_id) + "|" + str(archivo["path"])
 
 
 def limpiar_titulo(texto):
-
     texto = Path(texto).stem
 
     texto = re.sub(
@@ -184,33 +149,15 @@ def limpiar_titulo(texto):
         texto
     )
 
-    texto = re.sub(
-        r"\[.*?\]|\(.*?\)",
-        " ",
-        texto
-    )
-
-    texto = re.sub(
-        r"[._]+",
-        " ",
-        texto
-    )
-
-    texto = re.sub(
-        r"\s+",
-        " ",
-        texto
-    )
+    texto = re.sub(r"\[.*?\]|\(.*?\)", " ", texto)
+    texto = re.sub(r"[._]+", " ", texto)
+    texto = re.sub(r"\s+", " ", texto)
 
     return texto.strip(" -_.")
 
 
 def normalizar(texto):
-
-    texto = unicodedata.normalize(
-        "NFD",
-        texto.lower()
-    )
+    texto = unicodedata.normalize("NFD", texto.lower())
 
     return "".join(
         c for c in texto
@@ -219,7 +166,6 @@ def normalizar(texto):
 
 
 def calidad(texto):
-
     texto = texto.lower()
 
     if re.search(r"\b(4k|2160p|uhd)\b", texto):
@@ -239,7 +185,6 @@ def calidad(texto):
 # ==========================================================
 
 def tmdb_get(endpoint, params=None):
-
     parametros = {
         "api_key": TMDB_API_KEY,
         "language": "es-ES"
@@ -255,12 +200,10 @@ def tmdb_get(endpoint, params=None):
     )
 
     respuesta.raise_for_status()
-
     return respuesta.json()
 
 
 def buscar_tmdb(titulo, tipo):
-
     endpoint = (
         "/search/movie"
         if tipo == "movie"
@@ -284,11 +227,8 @@ def buscar_tmdb(titulo, tipo):
     mejor_puntuacion = 0
 
     for item in resultados:
-
         nombre = item.get(
-            "title"
-            if tipo == "movie"
-            else "name",
+            "title" if tipo == "movie" else "name",
             ""
         )
 
@@ -299,7 +239,6 @@ def buscar_tmdb(titulo, tipo):
         ).ratio()
 
         if puntuacion > mejor_puntuacion:
-
             mejor = item
             mejor_puntuacion = puntuacion
 
@@ -310,28 +249,18 @@ def buscar_tmdb(titulo, tipo):
 
 
 def imagen(ruta, tamano="w780"):
-
-    return (
-        IMAGE + tamano + ruta
-        if ruta
-        else ""
-    )
+    return IMAGE + tamano + ruta if ruta else ""
 
 
 def edad_pelicula(tmdb_id):
-
     try:
-
         datos = tmdb_get(
             f"/movie/{tmdb_id}/release_dates"
         )
 
         for pais in datos.get("results", []):
-
             if pais.get("iso_3166_1") == "ES":
-
                 for fecha in pais.get("release_dates", []):
-
                     valor = fecha.get("certification")
 
                     if valor:
@@ -344,17 +273,13 @@ def edad_pelicula(tmdb_id):
 
 
 def edad_serie(tmdb_id):
-
     try:
-
         datos = tmdb_get(
             f"/tv/{tmdb_id}/content_ratings"
         )
 
         for pais in datos.get("results", []):
-
             if pais.get("iso_3166_1") == "ES":
-
                 valor = pais.get("rating", "")
 
                 if valor:
@@ -367,9 +292,7 @@ def edad_serie(tmdb_id):
 
 
 def buscar_logo(tipo, tmdb_id):
-
     try:
-
         datos = tmdb_get(
             f"/{tipo}/{tmdb_id}/images",
             {
@@ -380,7 +303,6 @@ def buscar_logo(tipo, tmdb_id):
         logos = datos.get("logos", [])
 
         if logos:
-
             elegido = next(
                 (
                     x for x in logos
@@ -405,44 +327,24 @@ def buscar_logo(tipo, tmdb_id):
 # ==========================================================
 
 def datos_pelicula(archivo, magnet_id):
+    titulo = limpiar_titulo(archivo["name"])
 
-    titulo = limpiar_titulo(
-        archivo["name"]
-    )
-
-    resultado = buscar_tmdb(
-        titulo,
-        "movie"
-    )
+    resultado = buscar_tmdb(titulo, "movie")
 
     if not resultado:
-
-        print(
-            "Película sin coincidencia:",
-            titulo
-        )
-
+        print("Película sin coincidencia:", titulo)
         return None
 
     tmdb_id = resultado["id"]
 
-    detalles = tmdb_get(
-        f"/movie/{tmdb_id}"
-    )
+    detalles = tmdb_get(f"/movie/{tmdb_id}")
 
     return {
-
         "magnet_id": magnet_id,
-
         "file_path": archivo["path"],
-
         "stream_url": archivo["url"],
 
-        "title": detalles.get(
-            "title",
-            titulo
-        ),
-
+        "title": detalles.get("title", titulo),
         "tmdb_id": tmdb_id,
 
         "poster": imagen(
@@ -454,39 +356,19 @@ def datos_pelicula(archivo, magnet_id):
             "original"
         ),
 
-        "logo": buscar_logo(
-            "movie",
-            tmdb_id
-        ),
+        "logo": buscar_logo("movie", tmdb_id),
 
-        "overview": detalles.get(
-            "overview",
-            ""
-        ),
-
-        "release_date": detalles.get(
-            "release_date",
-            ""
-        ),
-
-        "runtime": detalles.get(
-            "runtime",
-            0
-        ),
+        "overview": detalles.get("overview", ""),
+        "release_date": detalles.get("release_date", ""),
+        "runtime": detalles.get("runtime", 0),
 
         "genres": [
             x["name"]
             for x in detalles.get("genres", [])
         ],
 
-        "quality": calidad(
-            archivo["name"]
-        ),
-
-        "age_rating": edad_pelicula(
-            tmdb_id
-        ),
-
+        "quality": calidad(archivo["name"]),
+        "age_rating": edad_pelicula(tmdb_id),
         "match_status": "encontrada"
     }
 
@@ -496,7 +378,6 @@ def datos_pelicula(archivo, magnet_id):
 # ==========================================================
 
 def detectar_episodio(nombre):
-
     patron = re.search(
         r"(?i)(.*?)(?:S(\d{1,2})E(\d{1,3})|(\d{1,2})x(\d{1,3}))",
         nombre
@@ -505,9 +386,7 @@ def detectar_episodio(nombre):
     if not patron:
         return None
 
-    serie = limpiar_titulo(
-        patron.group(1)
-    )
+    serie = limpiar_titulo(patron.group(1))
 
     temporada = int(
         patron.group(2) or patron.group(4)
@@ -521,47 +400,28 @@ def detectar_episodio(nombre):
         return None
 
     return {
-
         "serie": serie,
-
         "temporada": temporada,
-
         "episodio": episodio
     }
 
 
 def datos_serie(titulo):
-
-    resultado = buscar_tmdb(
-        titulo,
-        "tv"
-    )
+    resultado = buscar_tmdb(titulo, "tv")
 
     if not resultado:
-
-        print(
-            "Serie sin coincidencia:",
-            titulo
-        )
-
+        print("Serie sin coincidencia:", titulo)
         return None
 
     tmdb_id = resultado["id"]
 
-    detalles = tmdb_get(
-        f"/tv/{tmdb_id}"
-    )
+    detalles = tmdb_get(f"/tv/{tmdb_id}")
 
     return {
-
         "id": tmdb_id,
-
         "tmdb_id": tmdb_id,
 
-        "title": detalles.get(
-            "name",
-            titulo
-        ),
+        "title": detalles.get("name", titulo),
 
         "poster": imagen(
             detalles.get("poster_path")
@@ -572,29 +432,17 @@ def datos_serie(titulo):
             "original"
         ),
 
-        "logo": buscar_logo(
-            "tv",
-            tmdb_id
-        ),
+        "logo": buscar_logo("tv", tmdb_id),
 
-        "overview": detalles.get(
-            "overview",
-            ""
-        ),
-
-        "first_air_date": detalles.get(
-            "first_air_date",
-            ""
-        ),
+        "overview": detalles.get("overview", ""),
+        "first_air_date": detalles.get("first_air_date", ""),
 
         "genres": [
             x["name"]
             for x in detalles.get("genres", [])
         ],
 
-        "age_rating": edad_serie(
-            tmdb_id
-        ),
+        "age_rating": edad_serie(tmdb_id),
 
         "number_of_seasons": detalles.get(
             "number_of_seasons",
@@ -605,29 +453,19 @@ def datos_serie(titulo):
     }
 
 
-def obtener_datos_episodio(
-    tmdb_id,
-    temporada,
-    episodio
-):
-
+def obtener_datos_episodio(tmdb_id, temporada, episodio):
     try:
-
         datos = tmdb_get(
             f"/tv/{tmdb_id}/season/{temporada}/episode/{episodio}"
         )
 
         return {
-
             "titulo": datos.get(
                 "name",
                 f"Episodio {episodio}"
             ),
 
-            "sinopsis": datos.get(
-                "overview",
-                ""
-            ),
+            "sinopsis": datos.get("overview", ""),
 
             "imagen": imagen(
                 datos.get("still_path"),
@@ -636,13 +474,9 @@ def obtener_datos_episodio(
         }
 
     except Exception:
-
         return {
-
             "titulo": f"Episodio {episodio}",
-
             "sinopsis": "",
-
             "imagen": ""
         }
 
@@ -671,10 +505,10 @@ def main():
         raise Exception("episodios.json no tiene formato válido")
 
     # Índice de películas existentes.
+
     peliculas_por_clave = {}
 
     for pelicula in peliculas:
-
         if "magnet_id" in pelicula and "file_path" in pelicula:
 
             clave = (
@@ -686,15 +520,15 @@ def main():
             peliculas_por_clave[clave] = pelicula
 
     # Índice de series existentes.
+
     series_por_id = {}
 
     for serie in series:
-
         if serie.get("id") is not None:
-
             series_por_id[str(serie["id"])] = serie
 
     # Índice de episodios existentes.
+
     episodios_por_clave = {}
 
     for tmdb_id, lista in episodios.items():
@@ -716,6 +550,12 @@ def main():
 
     series_cache = {}
 
+    # Listas temporales para colocar las novedades delante
+    # sin alterar el orden de los contenidos anteriores.
+
+    nuevas_peliculas_lista = []
+    nuevas_series_lista = []
+
     print("Películas existentes:", len(peliculas))
     print("Series existentes:", len(series))
     print("Consultando magnets de AllDebrid...")
@@ -725,7 +565,6 @@ def main():
     print("Magnets terminados:", len(magnets))
 
     if not magnets:
-
         raise Exception(
             "AllDebrid no ha devuelto magnets. "
             "Se conservan los catálogos anteriores."
@@ -752,16 +591,10 @@ def main():
         )
 
         try:
-
             archivos = obtener_archivos(magnet_id)
 
         except Exception as error:
-
-            print(
-                "Error leyendo magnet:",
-                error
-            )
-
+            print("Error leyendo magnet:", error)
             continue
 
         for archivo in archivos:
@@ -792,15 +625,11 @@ def main():
 
                 titulo_serie = episodio["serie"]
 
-                clave_serie = normalizar(
-                    titulo_serie
-                )
+                clave_serie = normalizar(titulo_serie)
 
                 if clave_serie not in series_cache:
 
-                    info = datos_serie(
-                        titulo_serie
-                    )
+                    info = datos_serie(titulo_serie)
 
                     if not info:
                         continue
@@ -815,7 +644,10 @@ def main():
 
                     else:
 
-                        series.append(info)
+                        # La serie nueva se guarda temporalmente.
+                        # Al final se colocará delante de las antiguas.
+
+                        nuevas_series_lista.append(info)
 
                         series_por_id[tmdb_id] = info
 
@@ -823,20 +655,14 @@ def main():
 
                         nuevas_series += 1
 
-                    episodios.setdefault(
-                        tmdb_id,
-                        []
-                    )
+                    episodios.setdefault(tmdb_id, [])
 
-                info_serie = series_cache[
-                    clave_serie
-                ]
+                info_serie = series_cache[clave_serie]
 
-                tmdb_id = str(
-                    info_serie["id"]
-                )
+                tmdb_id = str(info_serie["id"])
 
-                # Si existe, NO modificar nada.
+                # Si el episodio ya existe, no modificar nada.
+
                 if clave in episodios_por_clave:
                     continue
 
@@ -847,21 +673,15 @@ def main():
                 )
 
                 nuevo = {
-
                     "numero": episodio["episodio"],
-
                     "temporada": episodio["temporada"],
 
                     "titulo": datos_tmdb["titulo"],
-
                     "sinopsis": datos_tmdb["sinopsis"],
-
                     "imagen": datos_tmdb["imagen"],
 
                     "magnet_id": magnet_id,
-
                     "file_path": archivo["path"],
-
                     "url": archivo["url"],
 
                     "quality": calidad(nombre)
@@ -888,7 +708,8 @@ def main():
 
             else:
 
-                # Si existe, NO modificar nada.
+                # Si existe, no modificar ningún dato.
+
                 if clave in peliculas_por_clave:
                     continue
 
@@ -911,7 +732,10 @@ def main():
 
                 if pelicula:
 
-                    peliculas.append(pelicula)
+                    # Guardar temporalmente la película nueva.
+                    # Se añadirá delante de las anteriores al final.
+
+                    nuevas_peliculas_lista.append(pelicula)
 
                     peliculas_por_clave[clave] = pelicula
 
@@ -921,6 +745,14 @@ def main():
                         "Nueva película:",
                         pelicula["title"]
                     )
+
+    # ======================================================
+    # COLOCAR NOVEDADES AL PRINCIPIO
+    # ======================================================
+
+    peliculas = nuevas_peliculas_lista + peliculas
+
+    series = nuevas_series_lista + series
 
     # ======================================================
     # ORDENAR EPISODIOS
@@ -964,7 +796,9 @@ def main():
         sum(len(x) for x in episodios.values())
     )
 
+    print("Las novedades se han colocado al principio.")
     print("Los enlaces y correcciones existentes se han conservado.")
+
     print("--------------------------------")
 
 
