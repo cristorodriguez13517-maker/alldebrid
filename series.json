@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "id": 339697,
+    "tmdb_id": 339697,
+    "title": "Melania Rea",
+    "poster": "https://image.tmdb.org/t/p/w780/yK9Q4ORFEHEaqFRthTlC9jdU0Ac.jpg",
+    "backdrop": "https://image.tmdb.org/t/p/original/r5ecc4Wjejsp6B507GdZXOPTNMo.jpg",
+    "logo": "",
+    "overview": "La trágica historia de Melania Rea, cuyo caso revela un matrimonio tóxico marcado por las mentiras y la manipulación.",
+    "first_air_date": "2026-11-06",
+    "genres": [
+      "Drama"
+    ],
+    "age_rating": "",
+    "number_of_seasons": 1,
+    "quality": ""
+  }
+]
