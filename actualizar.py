@@ -70,13 +70,6 @@ def guardar(nombre, datos):
 # ==========================================================
 
 def normalizar_lista_magnets(elementos):
-    """
-    AllDebrid puede devolver los magnets como diccionarios
-    o como identificadores de texto.
-
-    Esta función convierte ambos formatos en diccionarios
-    para evitar el error: 'str' object has no attribute 'get'.
-    """
 
     if elementos is None:
         return []
@@ -529,37 +522,73 @@ def datos_pelicula(archivo, magnet_id):
 
 def detectar_episodio(nombre):
 
+    nombre_original = Path(nombre).stem
+
+    # ------------------------------------------------------
+    # FORMATO S01E01 O 1x01
+    # ------------------------------------------------------
+
     patron = re.search(
         r"(?i)(.*?)(?:S(\d{1,2})E(\d{1,3})|(\d{1,2})x(\d{1,3}))",
-        nombre
+        nombre_original
     )
 
-    if not patron:
-        return None
+    if patron:
 
-    serie = limpiar_titulo(
-        patron.group(1)
+        serie = limpiar_titulo(
+            patron.group(1)
+        )
+
+        temporada = int(
+            patron.group(2) or patron.group(4)
+        )
+
+        episodio = int(
+            patron.group(3) or patron.group(5)
+        )
+
+        if serie:
+
+            return {
+                "serie": serie,
+                "temporada": temporada,
+                "episodio": episodio
+            }
+
+    # ------------------------------------------------------
+    # FORMATO Cap.101 / Cap 101 / Capítulo 101
+    # ------------------------------------------------------
+
+    patron = re.search(
+        r"(?i)^(.*?)\s*\[?\s*(?:cap(?:itulo)?|episodio|ep)\.?\s*(\d{3,4})\s*\]?",
+        nombre_original
     )
 
-    temporada = int(
-        patron.group(2) or patron.group(4)
-    )
+    if patron:
 
-    episodio = int(
-        patron.group(3) or patron.group(5)
-    )
+        serie = limpiar_titulo(
+            patron.group(1)
+        )
 
-    if not serie:
-        return None
+        numero = patron.group(2)
 
-    return {
+        if serie:
 
-        "serie": serie,
+            # Las dos últimas cifras son el episodio.
+            # Las cifras anteriores son la temporada.
 
-        "temporada": temporada,
+            temporada = int(numero[:-2])
+            episodio = int(numero[-2:])
 
-        "episodio": episodio
-    }
+            if temporada > 0 and episodio > 0:
+
+                return {
+                    "serie": serie,
+                    "temporada": temporada,
+                    "episodio": episodio
+                }
+
+    return None
 
 
 def datos_serie(titulo):
@@ -816,8 +845,6 @@ def main():
 
     for magnet in magnets:
 
-        # Protección adicional: comprobar el formato.
-
         if not isinstance(magnet, dict):
 
             print(
@@ -917,8 +944,6 @@ def main():
 
                     else:
 
-                        # Serie nueva: se guarda temporalmente.
-
                         nuevas_series_lista.append(info)
 
                         series_por_id[tmdb_id] = info
@@ -993,8 +1018,6 @@ def main():
 
             else:
 
-                # Si existe, no modificar ningún dato manual.
-
                 if clave in peliculas_por_clave:
                     continue
 
@@ -1016,8 +1039,6 @@ def main():
                     continue
 
                 if pelicula:
-
-                    # Película nueva: se guarda temporalmente.
 
                     nuevas_peliculas_lista.append(
                         pelicula
