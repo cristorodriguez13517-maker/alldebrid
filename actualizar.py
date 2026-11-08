@@ -661,7 +661,7 @@ def buscar_logo(tipo, tmdb_id):
 
             return imagen(
                 elegido.get("file_path"),
-                "w500"
+                "w780"
             )
 
     except Exception:
