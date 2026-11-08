@@ -1,5 +1,51 @@
 [
   {
+    "title": "Zona cero",
+    "tmdb_id": 1375646,
+    "poster": "https://image.tmdb.org/t/p/w780/xGgRmpAVe1jmkZp5Z3SS4cKeMvp.jpg",
+    "backdrop": "https://image.tmdb.org/t/p/original/iGViga8sDCET1S6GfwOlAbuhSGQ.jpg",
+    "logo": "https://image.tmdb.org/t/p/w780/d0cAVcNi369hXwwl8PKRN3QY9nY.png",
+    "overview": "El profesor Se-jeong es arrojado a una pesadilla cuando un  virus en rápida mutación se libera durante una conferencia de  biotecnología, lo que lleva a las autoridades a sellar las  instalaciones. Atrapado dentro sin escapatoria, Se-jeong, junto a un  pequeño grupo de supervivientes, debe luchar por mantenerse con vida  mientras los infectados sufren transformaciones horribles.",
+    "release_date": "2026-05-21",
+    "runtime": 123,
+    "genres": [
+      "Terror",
+      "Acción",
+      "Ciencia ficción"
+    ],
+    "age_rating": "",
+    "match_status": "encontrada",
+    "magnet_id": "841995992",
+    "file_path": "Zona cero (Gangchae) (2026) [4k 2160p][Esp]/Zona cero (Gangchae) (2026) [4k 2160p][Esp].mkv",
+    "stream_url": "https://alldebrid.com/f/F_7g_tBku2OidUqnGAXUkY8zbM8stpwfnAe0sDC9K18",
+    "quality": "4K",
+    "added_at": "2026-11-08T00:49:37+00:00",
+    "source_name": "Zona cero (Gangchae) (2026) [4k 2160p][Esp]"
+  },
+  {
+    "title": "En mar abierto",
+    "tmdb_id": 1127384,
+    "poster": "https://image.tmdb.org/t/p/w780/6hlW7llzDIh4rBIGvtdGoIFsawg.jpg",
+    "backdrop": "https://image.tmdb.org/t/p/original/szKv713FcUXx6hcfdY369vtkmzr.jpg",
+    "logo": "https://image.tmdb.org/t/p/w780/bo8dPURWAwosl7b6cCzgbIAMlIx.png",
+    "overview": "Un avión comercial en ruta de Los Ángeles a Shanghai se ve obligado a realizar un aterrizaje de emergencia en aguas infestadas de tiburones.",
+    "release_date": "2026-04-30",
+    "runtime": 107,
+    "genres": [
+      "Terror",
+      "Suspense",
+      "Aventura"
+    ],
+    "age_rating": "12+",
+    "match_status": "encontrada",
+    "magnet_id": "841993847",
+    "file_path": "En mar abierto (2026) [4k 2160p][Esp]/En mar abierto (2026) [4k 2160p][Esp].mkv",
+    "stream_url": "https://alldebrid.com/f/y44_7Q2Z35mrMuhCKbYMoOuuKa_v67H-z4AMzeJOVLM",
+    "quality": "4K",
+    "added_at": "2026-11-08T00:48:41+00:00",
+    "source_name": "En mar abierto (2026) [4k 2160p][Esp]"
+  },
+  {
     "magnet_id": "840448009",
     "file_path": "Ferdinand [4K Remux][2160p][HDR][AC3 5.1-DTS 5.1 Castellano True HD 5.1-Ingles+Subs][ES-EN]/Ferdinand 4K2160.www.descargas2020.com.mkv",
     "stream_url": "https://alldebrid.com/f/sQpCN4JvDpnECy_oSuKIgnM35HZTCTLCDvsKOjoC7NE",
@@ -24,25 +70,25 @@
     "match_status": "encontrada"
   },
   {
+    "title": "Nightborn",
+    "tmdb_id": 964849,
+    "poster": "https://image.tmdb.org/t/p/w780/iuWjbhgwjE4GIegCxWcu70d9FUl.jpg",
+    "backdrop": "https://image.tmdb.org/t/p/original/jVeYae744cR2ogx9ShQ3qXOcRiZ.jpg",
+    "logo": "https://image.tmdb.org/t/p/w780/z5xXzDClxqlzwzY7V1rhKlEUnoA.png",
+    "overview": "En el bosque finlandés, Saga y su esposo Jon se embarcan en un nuevo capítulo como padres. La alegría de Saga se ve ensombrecida por las sospechas sobre su bebé, provocando una ruptura mientras ella se enfrenta a la inquietante verdad.",
+    "release_date": "2026-07-01",
+    "runtime": 92,
+    "genres": [
+      "Terror"
+    ],
+    "age_rating": "",
+    "match_status": "encontrada",
     "magnet_id": "840445669",
     "file_path": "Nightborn (2026) [Bluray 1080p][Esp]/Nightborn (2026) [Bluray 1080p][Esp].mkv",
     "stream_url": "https://alldebrid.com/f/FWTJCwKSt2GeR63VT9uR2DPqw13YgKDgZX1mJEIe6xI",
-    "title": "2026",
-    "tmdb_id": 782169,
-    "poster": "https://image.tmdb.org/t/p/w780/uX7ydimsSh5D8y8LYxNkytWbOco.jpg",
-    "backdrop": "",
-    "logo": "",
-    "overview": "",
-    "release_date": "2012-09-22",
-    "runtime": 9,
-    "genres": [
-      "Ciencia ficción"
-    ],
     "quality": "FHD",
-    "age_rating": "",
     "added_at": "2026-11-07T01:22:55+00:00",
-    "source_name": "Nightborn (2026) [Bluray 1080p][Esp]",
-    "match_status": "encontrada"
+    "source_name": "Nightborn (2026) [Bluray 1080p][Esp]"
   },
   {
     "magnet_id": "840444946",
@@ -67,109 +113,115 @@
     "match_status": "encontrada"
   },
   {
+    "title": "La razón de estar contigo: Una Navidad perfecta",
+    "tmdb_id": 1570488,
+    "poster": "https://image.tmdb.org/t/p/w780/eixA3LDfxqMKpz2L8uIM1kTIJ8g.jpg",
+    "backdrop": "https://image.tmdb.org/t/p/original/hhQT0TySg3LXCE8BEPpfPJ5zJA2.jpg",
+    "logo": "https://image.tmdb.org/t/p/w780/apppQpEdq4mRFXytmvbS2SXy1Ec.png",
+    "overview": "Una urgencia médica separa a la familia Goss y Winstead, su fiel perro, hará todo lo posible por reunirlos de nuevo antes de Nochebuena.",
+    "release_date": "2026-11-04",
+    "runtime": 102,
+    "genres": [
+      "Comedia",
+      "Drama"
+    ],
+    "age_rating": "",
+    "match_status": "encontrada",
     "magnet_id": "840443536",
     "file_path": "La razón de estar contigo Una Navidad perfecta (2026) [4K 2160p][Esp]/La razón de estar contigo Una Navidad perfecta (2026) [4K 2160p][Esp].mkv",
     "stream_url": "https://alldebrid.com/f/Y5iFdwvbxQ6hqZfkj4MIOW4HckjyNgoZRRLbJdSjHPU",
-    "title": "2026",
-    "tmdb_id": 782169,
-    "poster": "https://image.tmdb.org/t/p/w780/uX7ydimsSh5D8y8LYxNkytWbOco.jpg",
-    "backdrop": "",
-    "logo": "",
-    "overview": "",
-    "release_date": "2012-09-22",
-    "runtime": 9,
-    "genres": [
-      "Ciencia ficción"
-    ],
     "quality": "4K",
-    "age_rating": "",
     "added_at": "2026-11-07T01:20:58+00:00",
-    "source_name": "La razón de estar contigo Una Navidad perfecta (2026) [4K 2160p][Esp]",
-    "match_status": "encontrada"
+    "source_name": "La razón de estar contigo Una Navidad perfecta (2026) [4K 2160p][Esp]"
   },
   {
+    "title": "En el corazón de la bestia",
+    "tmdb_id": 1263337,
+    "poster": "https://image.tmdb.org/t/p/w780/ygerWK11AeNZkzs7UNP36Attv6d.jpg",
+    "backdrop": "https://image.tmdb.org/t/p/original/kpqsljPQtWqPKJBTAEtoXtQZ9Ko.jpg",
+    "logo": "https://image.tmdb.org/t/p/w780/uy3RZNEMpNK0T0oNn1s6JgOFntZ.png",
+    "overview": "Tras sobrevivir a un brutal accidente aéreo, el oficial de las Fuerzas Especiales James Belmont y su perro de combate Odín intentarán regresar a la civilización desde un remoto lugar en medio de los parajes salvajes de Alaska.",
+    "release_date": "2026-09-19",
+    "runtime": 101,
+    "genres": [
+      "Aventura",
+      "Suspense"
+    ],
+    "age_rating": "12+",
+    "match_status": "encontrada",
     "magnet_id": "840436624",
     "file_path": "En el corazon de la bestia (2026) [4k 2160p][Esp]/En el corazon de la bestia (2026) [4k 2160p][Esp].mkv",
     "stream_url": "https://alldebrid.com/f/U7wykq2vglK_a3rvXKNeOM_faJ6xs6TbKccu1BYJaw4",
-    "title": "2026",
-    "tmdb_id": 782169,
-    "poster": "https://image.tmdb.org/t/p/w780/uX7ydimsSh5D8y8LYxNkytWbOco.jpg",
-    "backdrop": "",
-    "logo": "",
-    "overview": "",
-    "release_date": "2012-09-22",
-    "runtime": 9,
-    "genres": [
-      "Ciencia ficción"
-    ],
     "quality": "4K",
-    "age_rating": "",
     "added_at": "2026-11-07T01:12:29+00:00",
-    "source_name": "En el corazon de la bestia (2026) [4k 2160p][Esp]",
-    "match_status": "encontrada"
+    "source_name": "En el corazon de la bestia (2026) [4k 2160p][Esp]"
   },
   {
+    "title": "El vestido",
+    "tmdb_id": 1474226,
+    "poster": "https://image.tmdb.org/t/p/w780/2SoHOeFWgF4pP9yVlEch76ja7r5.jpg",
+    "backdrop": "https://image.tmdb.org/t/p/original/hXRw0AVY8avc0koUXj2rMY6q2N8.jpg",
+    "logo": "https://image.tmdb.org/t/p/w780/k9rCF3oTTWFiPYiNyVfQeBntpDe.png",
+    "overview": "Una mujer y su hija se mudan a una casa nueva en las afueras para intentar empezar de cero, pero lo que empieza como una segunda oportunidad desembocará en una sucesión de eventos extraños.",
+    "release_date": "2026-02-13",
+    "runtime": 75,
+    "genres": [
+      "Terror"
+    ],
+    "age_rating": "",
+    "match_status": "encontrada",
     "magnet_id": "840421327",
     "file_path": "El vestido (2026) [Bluray 1080p][Esp]/El vestido (2026) [Bluray 1080p][Esp].mkv",
     "stream_url": "https://alldebrid.com/f/a6m95t0-wYf3d3XRbb5OUT6dLT7Q8fT3moeaUUUYE48",
-    "title": "2026",
-    "tmdb_id": 782169,
-    "poster": "https://image.tmdb.org/t/p/w780/uX7ydimsSh5D8y8LYxNkytWbOco.jpg",
-    "backdrop": "",
-    "logo": "",
-    "overview": "",
-    "release_date": "2012-09-22",
-    "runtime": 9,
-    "genres": [
-      "Ciencia ficción"
-    ],
     "quality": "FHD",
-    "age_rating": "",
     "added_at": "2026-11-07T00:58:35+00:00",
-    "source_name": "El vestido (2026) [Bluray 1080p][Esp]",
-    "match_status": "encontrada"
+    "source_name": "El vestido (2026) [Bluray 1080p][Esp]"
   },
   {
+    "title": "Resident Evil",
+    "tmdb_id": 1423191,
+    "poster": "https://image.tmdb.org/t/p/w780/vrLEVObLGbUinE4sC4Lqao2dK0E.jpg",
+    "backdrop": "https://image.tmdb.org/t/p/original/3icyRAqgakNcQn6aDVz9libFmBA.jpg",
+    "logo": "https://image.tmdb.org/t/p/w780/m9WqiXJWy1gARXt7RIeS3l8eRpp.png",
+    "overview": "Película basada en la saga de videojuegos de Capcom del mismo nombre. En una reinvención totalmente nueva, el mensajero médico Bryan se ve inmerso en una carrera de acción sin descanso por la supervivencia, mientras el caos se desata a su alrededor.",
+    "release_date": "2026-09-16",
+    "runtime": 95,
+    "genres": [
+      "Terror",
+      "Ciencia ficción",
+      "Aventura"
+    ],
+    "age_rating": "16+",
+    "match_status": "encontrada",
     "magnet_id": "837839369",
     "file_path": "Resident Evil (2026) [4K 2160P][Esp]/Resident Evil (2026) [4K 2160P][Esp].mkv",
     "stream_url": "https://alldebrid.com/f/zRZDFmNdoIdATLgw62ZMOmC6KjaCD60mvE5i2AdS0F4",
-    "title": "2026",
-    "tmdb_id": 782169,
-    "poster": "https://image.tmdb.org/t/p/w780/uX7ydimsSh5D8y8LYxNkytWbOco.jpg",
-    "backdrop": "",
-    "logo": "",
-    "overview": "",
-    "release_date": "2012-09-22",
-    "runtime": 9,
-    "genres": [
-      "Ciencia ficción"
-    ],
     "quality": "4K",
-    "age_rating": "",
     "added_at": "2026-11-05T11:47:47+00:00",
-    "source_name": "Resident Evil (2026) [4K 2160P][Esp]",
-    "match_status": "encontrada"
+    "source_name": "Resident Evil (2026) [4K 2160P][Esp]"
   },
   {
+    "title": "Carrera de bestias",
+    "tmdb_id": 1263532,
+    "poster": "https://image.tmdb.org/t/p/w780/6Qwd9xKb1TnO7juMlZqHNiiJLWm.jpg",
+    "backdrop": "https://image.tmdb.org/t/p/original/1WWukZCoavYEofNVRHJqE4t1urW.jpg",
+    "logo": "https://image.tmdb.org/t/p/w780/uGOWwIkZlWexe3AvcnKFVMB80Lr.png",
+    "overview": "En una Río de Janeiro del futuro, un joven líder de la resistencia debe participar en una competición mortal inspirada en el parkour para salvar la vida de su hermana.",
+    "release_date": "2026-03-17",
+    "runtime": 124,
+    "genres": [
+      "Acción",
+      "Ciencia ficción",
+      "Suspense"
+    ],
+    "age_rating": "",
+    "match_status": "encontrada",
     "magnet_id": "693597124",
     "file_path": "Carrera de Bestias (2026) [Bluray 1080p][Esp]/Carrera de Bestias (2026) [Bluray 1080p][Esp].mkv",
     "stream_url": "https://alldebrid.com/f/RJNs6BmngVqbrQB_v_aK8bVIpJocpCn5YUTEuvHTXag",
-    "title": "2026",
-    "tmdb_id": 782169,
-    "poster": "https://image.tmdb.org/t/p/w780/uX7ydimsSh5D8y8LYxNkytWbOco.jpg",
-    "backdrop": "",
-    "logo": "",
-    "overview": "",
-    "release_date": "2012-09-22",
-    "runtime": 9,
-    "genres": [
-      "Ciencia ficción"
-    ],
     "quality": "FHD",
-    "age_rating": "",
     "added_at": "2026-09-19T09:22:53+00:00",
-    "source_name": "Carrera de Bestias (2026) [Bluray 1080p][Esp]",
-    "match_status": "encontrada"
+    "source_name": "Carrera de Bestias (2026) [Bluray 1080p][Esp]"
   },
   {
     "magnet_id": "701674177",
