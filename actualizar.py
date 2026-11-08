@@ -36,11 +36,9 @@ session.headers.update(HEADERS)
 # ==========================================================
 # ALIAS MANUALES
 # ==========================================================
-# Aquí podemos asociar nombres raros de archivos con títulos
-# reales. Se pueden añadir más casos cuando sea necesario.
 
 ALIAS_TITULOS = {
-    "84114.v1n1": "Vinicius",
+    "84114.V1N1": "Vinicius",
 }
 
 
@@ -49,14 +47,19 @@ ALIAS_TITULOS = {
 # ==========================================================
 
 def leer(nombre, defecto):
+
     ruta = Path(nombre)
 
     if not ruta.exists():
         return defecto
 
     try:
-        return json.loads(ruta.read_text(encoding="utf-8"))
+        return json.loads(
+            ruta.read_text(encoding="utf-8")
+        )
+
     except Exception as error:
+
         raise Exception(
             f"No se puede leer {nombre}. "
             f"No se modificará ningún catálogo: {error}"
@@ -64,6 +67,7 @@ def leer(nombre, defecto):
 
 
 def guardar(nombre, datos):
+
     ruta = Path(nombre)
 
     contenido = json.dumps(
@@ -72,8 +76,15 @@ def guardar(nombre, datos):
         indent=2
     )
 
-    temporal = ruta.with_suffix(ruta.suffix + ".tmp")
-    temporal.write_text(contenido, encoding="utf-8")
+    temporal = ruta.with_suffix(
+        ruta.suffix + ".tmp"
+    )
+
+    temporal.write_text(
+        contenido,
+        encoding="utf-8"
+    )
+
     temporal.replace(ruta)
 
 
@@ -93,6 +104,7 @@ def normalizar_lista_magnets(elementos):
 
         if "id" in elementos or "magnet_id" in elementos:
             lista = [elementos]
+
         else:
             lista = list(elementos.values())
 
@@ -119,6 +131,7 @@ def normalizar_lista_magnets(elementos):
                 continue
 
             magnet["id"] = str(magnet_id)
+
             resultado.append(magnet)
 
         elif isinstance(elemento, (str, int)):
@@ -126,6 +139,7 @@ def normalizar_lista_magnets(elementos):
             magnet_id = str(elemento).strip()
 
             if magnet_id:
+
                 resultado.append({
                     "id": magnet_id,
                     "filename": magnet_id
@@ -151,12 +165,16 @@ def alldebrid(endpoint, datos=None):
     resultado = respuesta.json()
 
     if not isinstance(resultado, dict):
+
         raise Exception(
             f"Respuesta inesperada de AllDebrid: {resultado}"
         )
 
     if resultado.get("status") != "success":
-        raise Exception(f"Error AllDebrid: {resultado}")
+
+        raise Exception(
+            f"Error AllDebrid: {resultado}"
+        )
 
     return resultado.get("data", {})
 
@@ -197,7 +215,10 @@ def recorrer_archivos(elementos, ruta=""):
         if isinstance(hijos, list):
 
             encontrados.extend(
-                recorrer_archivos(hijos, ruta_actual)
+                recorrer_archivos(
+                    hijos,
+                    ruta_actual
+                )
             )
 
             continue
@@ -205,10 +226,15 @@ def recorrer_archivos(elementos, ruta=""):
         if nombre.lower().endswith(VIDEO_EXTENSIONS):
 
             encontrados.append({
+
                 "name": nombre,
+
                 "path": ruta_actual,
+
                 "size": elemento.get("s", 0),
+
                 "url": elemento.get("l", "")
+
             })
 
     return encontrados
@@ -258,6 +284,7 @@ def fecha_incorporacion(magnet):
         try:
 
             if isinstance(valor, (int, float)):
+
                 return datetime.fromtimestamp(
                     valor,
                     timezone.utc
@@ -291,9 +318,15 @@ def normalizar(texto):
         str(texto).lower()
     )
 
-    return "".join(
+    texto = "".join(
         c for c in texto
         if unicodedata.category(c) != "Mn"
+    )
+
+    return re.sub(
+        r"[^a-z0-9]",
+        "",
+        texto
     )
 
 
@@ -301,7 +334,8 @@ def limpiar_titulo(texto):
 
     texto = Path(str(texto)).stem
 
-    # Eliminar páginas web y dominios.
+    # Eliminar dominios y páginas web.
+
     texto = re.sub(
         r"(?i)www\.[^\s]+|https?://[^\s]+",
         " ",
@@ -314,129 +348,192 @@ def limpiar_titulo(texto):
         texto
     )
 
-    # Eliminar información técnica de las releases.
+    # Eliminar etiquetas entre corchetes.
+
+    texto = re.sub(
+        r"\[.*?\]|\{.*?\}",
+        " ",
+        texto
+    )
+
+    # Eliminar información técnica.
+
     patrones = [
-        r"(?i)\b2160p?\b",
-        r"(?i)\b1080p?\b",
-        r"(?i)\b720p?\b",
-        r"(?i)\b4k\b",
+
+        r"(?i)\b\d{3,4}p\b",
+
+        r"(?i)\b4k\d*\b",
+
+        r"(?i)\b2160\b",
+
         r"(?i)\buhd\b",
+
         r"(?i)\bfhd\b",
+
         r"(?i)\bhd\b",
+
         r"(?i)\bbluray\b",
+
         r"(?i)\bbrrip\b",
+
         r"(?i)\bwebrip\b",
+
         r"(?i)\bweb[- ]?dl\b",
+
         r"(?i)\bweb\b",
+
         r"(?i)\bhdr10?\+?\b",
+
         r"(?i)\bhdr\b",
+
         r"(?i)\bremux\b",
-        r"(?i)\bx264\b",
-        r"(?i)\bx265\b",
-        r"(?i)\bh264\b",
-        r"(?i)\bh265\b",
-        r"(?i)\bhevc\b",
-        r"(?i)\bav1\b",
-        r"(?i)\bac3\b",
-        r"(?i)\bdts\b",
-        r"(?i)\bdts-hd\b",
-        r"(?i)\btruehd\b",
-        r"(?i)\batmos\b",
-        r"(?i)\baac\b",
-        r"(?i)\bflac\b",
-        r"(?i)\b\d(?:\.\d)?\s*ch\b",
+
+        r"(?i)\bx264\b|\bx265\b",
+
+        r"(?i)\bh264\b|\bh265\b",
+
+        r"(?i)\bhevc\b|\bav1\b",
+
+        r"(?i)\bac3\b|\bdts(?:-hd)?\b",
+
+        r"(?i)\btrue\s*hd\b",
+
+        r"(?i)\batmos\b|\baac\b|\bflac\b",
+
+        r"(?i)\b\d+(?:\.\d+)?\s*ch\b",
+
         r"(?i)\b\d\.\d\b",
-        r"(?i)\bcastellano\b",
-        r"(?i)\bespañol\b",
-        r"(?i)\bingles\b",
-        r"(?i)\benglish\b",
-        r"(?i)\bsubs\b",
-        r"(?i)\bsubtitulos\b",
-        r"(?i)\bes-en\b",
-        r"(?i)\ben-es\b",
-        r"(?i)\bproper\b",
-        r"(?i)\brepack\b",
+
+        r"(?i)\bcastellano\b|\bespañol\b",
+
+        r"(?i)\bingles\b|\benglish\b",
+
+        r"(?i)\bsubs\b|\bsubtitulos\b",
+
+        r"(?i)\bproper\b|\brepack\b",
+
         r"(?i)\bextended\b",
+
         r"(?i)\bdirectors cut\b",
+
+        r"(?i)\bes-en\b|\ben-es\b",
+
     ]
 
     for patron in patrones:
-        texto = re.sub(patron, " ", texto)
 
-    # Quitar grupos de etiquetas entre corchetes.
-    texto = re.sub(r"\[.*?\]", " ", texto)
-    texto = re.sub(r"\{.*?\}", " ", texto)
+        texto = re.sub(
+            patron,
+            " ",
+            texto
+        )
 
-    # Quitar puntos y guiones usados como separadores.
-    texto = re.sub(r"[._]+", " ", texto)
-    texto = re.sub(r"[-]+", " ", texto)
+    texto = re.sub(
+        r"[._]+",
+        " ",
+        texto
+    )
 
-    # Quitar restos de corchetes sueltos.
-    texto = texto.replace("[", " ")
-    texto = texto.replace("]", " ")
+    texto = re.sub(
+        r"[-]+",
+        " ",
+        texto
+    )
 
-    texto = re.sub(r"\s+", " ", texto)
+    texto = re.sub(
+        r"\s+",
+        " ",
+        texto
+    )
 
     return texto.strip(" -_.")
 
 
 def titulo_alias(texto):
 
-    texto_normalizado = normalizar(
-        limpiar_titulo(texto)
+    compacto = normalizar(
+        Path(str(texto)).stem
     )
 
     for clave, titulo in ALIAS_TITULOS.items():
 
-        clave_normalizada = normalizar(clave)
+        if normalizar(clave) in compacto:
 
-        if (
-            texto_normalizado == clave_normalizada
-            or texto_normalizado.startswith(
-                clave_normalizada + " "
-            )
-        ):
             return titulo
 
     return None
 
 
-def obtener_titulos_candidatos(archivo, nombre_magnet=""):
+def obtener_titulos_candidatos(
+    archivo,
+    nombre_magnet=""
+):
 
     candidatos = []
 
-    # Primero comprobamos si existe un alias manual.
-    alias_archivo = titulo_alias(
-        archivo.get("name", "")
-    )
-
-    alias_magnet = titulo_alias(
+    nombres = [
+        archivo.get("name", ""),
         nombre_magnet
-    )
+    ]
 
-    if alias_archivo:
-        candidatos.append(alias_archivo)
+    # Buscar alias manuales.
 
-    if alias_magnet:
-        candidatos.append(alias_magnet)
+    for nombre in nombres:
 
-    # Después utilizamos los nombres limpios.
-    titulo_archivo = limpiar_titulo(
-        archivo.get("name", "")
-    )
+        alias = titulo_alias(nombre)
 
-    titulo_magnet = limpiar_titulo(
-        nombre_magnet
-    )
+        if alias:
 
-    if titulo_archivo:
-        candidatos.append(titulo_archivo)
+            candidatos.append(alias)
 
-    if titulo_magnet:
-        candidatos.append(titulo_magnet)
+    for nombre in nombres:
 
-    # Eliminar duplicados conservando el orden.
+        if not nombre:
+            continue
+
+        base = Path(str(nombre)).stem
+
+        # Eliminar etiquetas técnicas entre corchetes.
+
+        base = re.sub(
+            r"\[.*?\]|\{.*?\}",
+            " ",
+            base
+        )
+
+        # Extraer títulos originales entre paréntesis.
+
+        originales = re.findall(
+            r"\(([^()]*)\)",
+            base
+        )
+
+        for original in originales:
+
+            limpio = limpiar_titulo(original)
+
+            if limpio:
+
+                candidatos.append(limpio)
+
+        # Eliminar años para mejorar la búsqueda.
+
+        sin_anio = re.sub(
+            r"\b(19|20)\d{2}\b",
+            " ",
+            base
+        )
+
+        limpio = limpiar_titulo(sin_anio)
+
+        if limpio:
+
+            candidatos.append(limpio)
+
+    # Eliminar duplicados.
+
     resultado = []
+
     vistos = set()
 
     for titulo in candidatos:
@@ -444,14 +541,10 @@ def obtener_titulos_candidatos(archivo, nombre_magnet=""):
         clave = normalizar(titulo)
 
         if clave and clave not in vistos:
-            vistos.add(clave)
-            resultado.append(titulo)
 
-    # Los nombres más específicos se prueban primero.
-    resultado.sort(
-        key=lambda x: len(x),
-        reverse=True
-    )
+            vistos.add(clave)
+
+            resultado.append(titulo)
 
     return resultado
 
@@ -479,11 +572,15 @@ def calidad(texto):
 def tmdb_get(endpoint, params=None):
 
     parametros = {
+
         "api_key": TMDB_API_KEY,
+
         "language": "es-ES"
+
     }
 
     if params:
+
         parametros.update(params)
 
     respuesta = requests.get(
@@ -519,6 +616,7 @@ def buscar_tmdb(titulo, tipo):
     titulo_busqueda = normalizar(titulo)
 
     mejor = None
+
     mejor_puntuacion = 0
 
     for item in resultados:
@@ -528,7 +626,7 @@ def buscar_tmdb(titulo, tipo):
             ""
         )
 
-        nombre_original = item.get(
+        original = item.get(
             "original_title"
             if tipo == "movie"
             else "original_name",
@@ -536,6 +634,7 @@ def buscar_tmdb(titulo, tipo):
         )
 
         puntuacion = max(
+
             SequenceMatcher(
                 None,
                 titulo_busqueda,
@@ -545,16 +644,18 @@ def buscar_tmdb(titulo, tipo):
             SequenceMatcher(
                 None,
                 titulo_busqueda,
-                normalizar(nombre_original)
+                normalizar(original)
             ).ratio()
+
         )
 
         if puntuacion > mejor_puntuacion:
 
             mejor = item
+
             mejor_puntuacion = puntuacion
 
-    if mejor_puntuacion < 0.40:
+    if mejor_puntuacion < 0.35:
         return None
 
     return mejor
@@ -578,6 +679,13 @@ def buscar_tmdb_candidatos(candidatos, tipo):
         )
 
         if resultado:
+
+            print(
+                "Coincidencia TMDB:",
+                resultado.get("title")
+                or resultado.get("name")
+            )
+
             return resultado
 
     return None
@@ -585,7 +693,11 @@ def buscar_tmdb_candidatos(candidatos, tipo):
 
 def imagen(ruta, tamano="w780"):
 
-    return IMAGE + tamano + ruta if ruta else ""
+    return (
+        IMAGE + tamano + ruta
+        if ruta
+        else ""
+    )
 
 
 def edad_pelicula(tmdb_id):
@@ -605,6 +717,7 @@ def edad_pelicula(tmdb_id):
                     valor = fecha.get("certification")
 
                     if valor:
+
                         return valor + "+"
 
     except Exception:
@@ -628,6 +741,7 @@ def edad_serie(tmdb_id):
                 valor = pais.get("rating", "")
 
                 if valor:
+
                     return valor + "+"
 
     except Exception:
@@ -671,7 +785,7 @@ def buscar_logo(tipo, tmdb_id):
 
 
 # ==========================================================
-# NUEVAS PELÍCULAS Y DOCUMENTALES
+# PELÍCULAS Y DOCUMENTALES
 # ==========================================================
 
 def datos_pelicula(
@@ -694,6 +808,11 @@ def datos_pelicula(
         )
 
         return None
+
+    print(
+        "Títulos candidatos:",
+        candidatos
+    )
 
     resultado = buscar_tmdb_candidatos(
         candidatos,
@@ -731,7 +850,8 @@ def datos_pelicula(
         "tmdb_id": tmdb_id,
 
         "poster": imagen(
-            detalles.get("poster_path")
+            detalles.get("poster_path"),
+            "w780"
         ),
 
         "backdrop": imagen(
@@ -777,6 +897,7 @@ def datos_pelicula(
         "source_name": nombre_magnet,
 
         "match_status": "encontrada"
+
     }
 
 
@@ -812,9 +933,13 @@ def detectar_episodio(nombre):
         if serie:
 
             return {
+
                 "serie": serie,
+
                 "temporada": temporada,
+
                 "episodio": episodio
+
             }
 
     # FORMATO Cap.101 / Cap 101 / Capítulo 101
@@ -835,14 +960,19 @@ def detectar_episodio(nombre):
         if serie:
 
             temporada = int(numero[:-2])
+
             episodio = int(numero[-2:])
 
             if temporada > 0 and episodio > 0:
 
                 return {
+
                     "serie": serie,
+
                     "temporada": temporada,
+
                     "episodio": episodio
+
                 }
 
     return None
@@ -882,7 +1012,8 @@ def datos_serie(titulo):
         ),
 
         "poster": imagen(
-            detalles.get("poster_path")
+            detalles.get("poster_path"),
+            "w780"
         ),
 
         "backdrop": imagen(
@@ -920,6 +1051,7 @@ def datos_serie(titulo):
         ),
 
         "quality": ""
+
     }
 
 
@@ -951,6 +1083,7 @@ def obtener_datos_episodio(
                 datos.get("still_path"),
                 "w500"
             )
+
         }
 
     except Exception:
@@ -962,6 +1095,7 @@ def obtener_datos_episodio(
             "sinopsis": "",
 
             "imagen": ""
+
         }
 
 
@@ -991,21 +1125,26 @@ def main():
     )
 
     if not isinstance(peliculas, list):
+
         raise Exception(
             "peliculas.json no tiene formato válido"
         )
 
     if not isinstance(series, list):
+
         raise Exception(
             "series.json no tiene formato válido"
         )
 
     if not isinstance(episodios, dict):
+
         raise Exception(
             "episodios.json no tiene formato válido"
         )
 
+    # ==============================================
     # ÍNDICE DE PELÍCULAS
+    # ==============================================
 
     peliculas_por_clave = {}
 
@@ -1027,7 +1166,9 @@ def main():
 
             peliculas_por_clave[clave] = pelicula
 
+    # ==============================================
     # ÍNDICE DE SERIES
+    # ==============================================
 
     series_por_id = {}
 
@@ -1038,9 +1179,13 @@ def main():
 
         if serie.get("id") is not None:
 
-            series_por_id[str(serie["id"])] = serie
+            series_por_id[
+                str(serie["id"])
+            ] = serie
 
+    # ==============================================
     # ÍNDICE DE EPISODIOS
+    # ==============================================
 
     episodios_por_clave = {}
 
@@ -1070,6 +1215,7 @@ def main():
     series_cache = {}
 
     nuevas_peliculas_lista = []
+
     nuevas_series_lista = []
 
     print(
@@ -1099,10 +1245,16 @@ def main():
         )
 
     nuevas_peliculas = 0
+
     nuevas_series = 0
+
     nuevos_episodios = 0
 
+    archivos_examinados = 0
+
+    # ==============================================
     # RECORRER MAGNETS
+    # ==============================================
 
     for magnet in magnets:
 
@@ -1122,7 +1274,11 @@ def main():
         added_at = fecha_incorporacion(magnet)
 
         print("--------------------------------")
-        print("Examinando magnet:", nombre_magnet)
+
+        print(
+            "Examinando magnet:",
+            nombre_magnet
+        )
 
         try:
 
@@ -1140,12 +1296,25 @@ def main():
 
             continue
 
+        print(
+            "Archivos de vídeo encontrados:",
+            len(archivos)
+        )
+
         for archivo in archivos:
 
             if not isinstance(archivo, dict):
                 continue
 
+            archivos_examinados += 1
+
             if not archivo.get("url"):
+
+                print(
+                    "Archivo sin enlace:",
+                    archivo.get("name")
+                )
+
                 continue
 
             nombre = archivo.get("name", "")
@@ -1157,6 +1326,12 @@ def main():
                 r"(?i)sample|trailer|extras",
                 nombre
             ):
+
+                print(
+                    "Archivo auxiliar ignorado:",
+                    nombre
+                )
+
                 continue
 
             clave = clave_archivo(
@@ -1164,9 +1339,9 @@ def main():
                 archivo
             )
 
-            # ==============================================
-            # DETECTAR EPISODIOS
-            # ==============================================
+            # ======================================
+            # EPISODIOS
+            # ======================================
 
             episodio = detectar_episodio(nombre)
 
@@ -1193,13 +1368,17 @@ def main():
 
                     if tmdb_id in series_por_id:
 
-                        serie_existente = series_por_id[tmdb_id]
+                        serie_existente = series_por_id[
+                            tmdb_id
+                        ]
 
-                        # No sobrescribir correcciones manuales.
                         if not serie_existente.get("added_at"):
+
                             serie_existente["added_at"] = added_at
 
-                        series_cache[clave_serie] = serie_existente
+                        series_cache[
+                            clave_serie
+                        ] = serie_existente
 
                     else:
 
@@ -1209,7 +1388,9 @@ def main():
 
                         series_por_id[tmdb_id] = info
 
-                        series_cache[clave_serie] = info
+                        series_cache[
+                            clave_serie
+                        ] = info
 
                         nuevas_series += 1
 
@@ -1227,6 +1408,12 @@ def main():
                 )
 
                 if clave in episodios_por_clave:
+
+                    print(
+                        "Episodio ya existente:",
+                        nombre
+                    )
+
                     continue
 
                 datos_tmdb = obtener_datos_episodio(
@@ -1258,6 +1445,7 @@ def main():
                     ),
 
                     "added_at": added_at
+
                 }
 
                 episodios[tmdb_id].append(nuevo)
@@ -1275,13 +1463,19 @@ def main():
                     episodio["episodio"]
                 )
 
-            # ==============================================
+            # ======================================
             # PELÍCULAS Y DOCUMENTALES
-            # ==============================================
+            # ======================================
 
             else:
 
                 if clave in peliculas_por_clave:
+
+                    print(
+                        "Película ya existente:",
+                        nombre
+                    )
+
                     continue
 
                 try:
@@ -1319,7 +1513,7 @@ def main():
                     )
 
     # ==============================================
-    # NOVEDADES AL PRINCIPIO
+    # COLOCAR NOVEDADES AL PRINCIPIO
     # ==============================================
 
     peliculas = (
@@ -1374,8 +1568,20 @@ def main():
     # ==============================================
 
     print("--------------------------------")
+
     print("ACTUALIZACIÓN COMPLETADA")
+
     print("--------------------------------")
+
+    print(
+        "Magnets examinados:",
+        len(magnets)
+    )
+
+    print(
+        "Archivos de vídeo examinados:",
+        archivos_examinados
+    )
 
     print(
         "Películas totales:",
@@ -1412,11 +1618,22 @@ def main():
     )
 
     print("--------------------------------")
-    print("Novedades colocadas al principio.")
-    print("Correcciones manuales conservadas.")
-    print("Fechas de incorporación guardadas.")
+
+    print(
+        "Novedades colocadas al principio."
+    )
+
+    print(
+        "Correcciones manuales conservadas."
+    )
+
+    print(
+        "Fechas de incorporación guardadas."
+    )
+
     print("--------------------------------")
 
 
 if __name__ == "__main__":
+
     main()
