@@ -22,10 +22,8 @@ AD = "https://api.alldebrid.com"
 TMDB = "https://api.themoviedb.org/3"
 IMAGE = "https://image.tmdb.org/t/p/"
 
-VIDEO_EXTENSIONS = (
-    ".mkv", ".mp4", ".avi", ".mov", ".m4v",
-    ".ts", ".webm", ".mpg", ".mpeg"
-)
+# Solo se procesan y cuentan archivos MKV.
+VIDEO_EXTENSIONS = (".mkv",)
 
 HEADERS = {"Authorization": f"Bearer {ALLDEBRID_API_KEY}"}
 session = requests.Session()
@@ -410,7 +408,6 @@ def calidad(texto):
         return "HD"
     return ""
 
-
 # ==========================================================
 # TMDB
 # ==========================================================
@@ -743,7 +740,6 @@ def obtener_datos_episodio(tmdb_id, temporada, episodio):
             "imagen": ""
         }
 
-
 # ==========================================================
 # REPARAR FICHAS ANTIGUAS
 # ==========================================================
@@ -928,7 +924,7 @@ def main():
     enlaces_peliculas_actualizados = 0
     enlaces_episodios_actualizados = 0
     archivos_examinados = 0
-    archivos_mkv_encontrados = 0
+    contador_mkv = 0
     enlaces_directos_conseguidos = 0
     enlaces_fallidos = 0
 
@@ -952,16 +948,8 @@ def main():
             print("Error leyendo magnet:", magnet_id, error)
             continue
 
-        # Recuento independiente de archivos MKV. Se reinicia a cero
-        # en cada ejecucion y no modifica ni elimina ningun archivo.
-        mkv_del_magnet = sum(
-            1 for archivo in archivos
-            if isinstance(archivo, dict)
-            and str(archivo.get("name", "")).lower().endswith(".mkv")
-        )
-        archivos_mkv_encontrados += mkv_del_magnet
-        print("Archivos MKV encontrados en este magnet:", mkv_del_magnet)
-        print("Archivos de video encontrados:", len(archivos))
+        print("Archivos MKV encontrados en este magnet:", len(archivos))
+        contador_mkv += len(archivos)
 
         for archivo in archivos:
             if not isinstance(archivo, dict):
@@ -1128,8 +1116,8 @@ def main():
     print("ACTUALIZACION COMPLETADA")
     print("--------------------------------")
     print("Magnets examinados:", len(magnets))
-    print("Archivos de video examinados:", archivos_examinados)
-    print("TOTAL DE ARCHIVOS MKV ENCONTRADOS:", archivos_mkv_encontrados)
+    print("Archivos MKV examinados:", archivos_examinados)
+    print("TOTAL DE ARCHIVOS MKV ENCONTRADOS:", contador_mkv)
     print("Enlaces directos conseguidos:", enlaces_directos_conseguidos)
     print("Enlaces que no se pudieron desbloquear:", enlaces_fallidos)
     print("Peliculas totales:", len(peliculas))
