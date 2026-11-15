@@ -1,0 +1,56 @@
+name: PRUEBA CONEXION ALLDEBRID
+
+on:
+  workflow_dispatch:
+
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Comprobar API de AllDebrid
+        env:
+          ALLDEBRID_API_KEY: ${{ secrets.ALLDEBRID_API_KEY }}
+        run: |
+          python - <<'PY'
+          import os
+          import requests
+
+          print("--------------------------------")
+          print("PRUEBA DE CONEXION ALLDEBRID")
+          print("--------------------------------")
+
+          api_key = os.environ.get("ALLDEBRID_API_KEY")
+
+          if not api_key:
+              print("ERROR: No se encuentra ALLDEBRID_API_KEY")
+              raise SystemExit(1)
+
+          try:
+              respuesta = requests.get(
+                  "https://api.alldebrid.com/v4/user",
+                  headers={
+                      "Authorization": "Bearer " + api_key
+                  },
+                  timeout=30
+              )
+
+              datos = respuesta.json()
+
+              print("HTTP:", respuesta.status_code)
+              print("RESULTADO:", datos.get("status"))
+
+              if datos.get("status") == "success":
+                  usuario = datos.get("data", {}).get("user", {})
+                  print("API KEY: CORRECTA")
+                  print("CUENTA: ACCESIBLE")
+                  print("PREMIUM:", usuario.get("isPremium"))
+              else:
+                  error = datos.get("error", {})
+                  print("CODIGO:", error.get("code"))
+                  print("MENSAJE:", error.get("message"))
+
+          except Exception as e:
+              print("ERROR DE CONEXION:", str(e))
+              raise SystemExit(1)
+          PY
