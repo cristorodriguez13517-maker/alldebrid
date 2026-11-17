@@ -1,0 +1,44 @@
+name: Renovar enlaces SHARKTV ALLDEBRID
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: renovar-enlaces-alldebrid
+  cancel-in-progress: false
+
+jobs:
+  renovar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: pip install requests
+
+      - name: Renovar enlaces
+        env:
+          ALLDEBRID_API_KEY: ${{ secrets.ALLDEBRID_API_KEY }}
+        run: python -u renovar_enlaces.py
+
+      - name: Guardar catalogos
+        run: |
+          git config user.name "SHARKTV"
+          git config user.email "sharktv@users.noreply.github.com"
+
+          git add peliculas.json episodios.json
+
+          git diff --cached --quiet || (
+            git commit -m "Renovar enlaces AllDebrid"
+            git push
+          )
