@@ -1,5 +1,62 @@
 [
   {
+    "id": 82728,
+    "tmdb_id": 82728,
+    "title": "Bluey",
+    "poster": "https://image.tmdb.org/t/p/w780/mspONkqgKmRuwc2wOYqs1MdwZNB.jpg",
+    "backdrop": "https://image.tmdb.org/t/p/original/tWdNZ3xuFBhJ2ZoQ9vShNGHTb85.jpg",
+    "logo": "https://image.tmdb.org/t/p/w780/uFYNVaPt6dz1PH6tZ4vfdyOnKS.png",
+    "overview": "Bluey es una perrita de seis años incansable. Esta pastor ganadero australiano azul convierte el día a día con su familia en una aventura extraordinaria y desarrolla así tanto su imaginación como su capacidad mental, física y emocional.",
+    "first_air_date": "2018-10-01",
+    "genres": [
+      "Animación",
+      "Comedia",
+      "Familia",
+      "Kids"
+    ],
+    "age_rating": "TP+",
+    "number_of_seasons": 4,
+    "quality": "",
+    "added_at": "2026-11-18T17:29:14+00:00"
+  },
+  {
+    "id": 16047,
+    "tmdb_id": 16047,
+    "title": "Ana de las tejas verdes",
+    "poster": "https://image.tmdb.org/t/p/w780/66I1lcG8lW2SQodTsJiVhc9DXYf.jpg",
+    "backdrop": "https://image.tmdb.org/t/p/original/BDFyz4VH7E4AS5Fy8m9s1mRMcR.jpg",
+    "logo": "https://image.tmdb.org/t/p/w780/hgv2GT3rLIO0GNzAb5SwUML4cOi.png",
+    "overview": "Ana de las Tejas Verdes (赤毛のアン Akage no an?, \"Ana del cabello rojo\") es una serie de anime basada en la novela Anne of Green Gables (\"Ana de las Tejas Verdes\") de Lucy Maud Montgomery. La serie fue emitida originalmente en Japón en el año 1979, parte del contenedor infantil World Masterpiece Theater o Meisaku de Nippon Animation. El contenedor había antes y después producido una gran variedad de series de animación basadas en diferentes obras literarias infantiles; entre ellas estaban \"Sin familia\" (1978) y \"Las aventuras de Tom Sawyer\" (1980). En España, la serie fue emitida a través de Tele 5. En conmemoración del trigésimo aniversario desde el estreno de la serie y centenario desde la publicación de la novela original, para abril de 2009 Nippon Animation estrenó una precuela de la historia titulada Konnichiwa Anne: Before Green Gables (\"Antes de las Tejas Verdes\").",
+    "first_air_date": "1979-01-07",
+    "genres": [
+      "Animación",
+      "Drama",
+      "Familia"
+    ],
+    "age_rating": "7+",
+    "number_of_seasons": 1,
+    "quality": "",
+    "added_at": "2026-11-18T17:25:18+00:00"
+  },
+  {
+    "id": 70785,
+    "tmdb_id": 70785,
+    "title": "Anne with an E",
+    "poster": "https://image.tmdb.org/t/p/w780/6P6tXhjT5tK3qOXzxF9OMLlG7iz.jpg",
+    "backdrop": "https://image.tmdb.org/t/p/original/ywQtHG17LZhAFZyZtBflhtFMtJ7.jpg",
+    "logo": "https://image.tmdb.org/t/p/w780/gtqNjjM2wXmTnbTvMP3xYAXaLrU.png",
+    "overview": "Anne Shirley es una niña huérfana que vive en un pequeño pueblo llamado Avonlea que pertenece a la Isla del Príncipe Eduardo, en el año 1890. Después de una infancia difícil, donde fue pasando de orfanato a hogares de acogida, es enviada por error a vivir con una solterona y su hermano. Cuando cumple 13 años, Anne va a conseguir transformar su vida y el pequeño pueblo donde vive gracias a su fuerte personalidad, intelecto e imaginación.",
+    "first_air_date": "2017-03-19",
+    "genres": [
+      "Drama",
+      "Familia"
+    ],
+    "age_rating": "12+",
+    "number_of_seasons": 3,
+    "quality": "",
+    "added_at": "2026-11-18T17:25:18+00:00"
+  },
+  {
     "id": 291507,
     "tmdb_id": 291507,
     "title": "El cuerpo",
