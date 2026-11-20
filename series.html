@@ -361,6 +361,27 @@ function filterSeries(){
 
 /* PREPARAR EPISODIOS Y TEMPORADAS */
 
+function puntuacionCalidadEpisodio(ep){
+    const texto=[ep.quality_manual,ep.quality,ep.file_path,ep.file_name,ep.filename,ep.source_name].filter(Boolean).join(' ').toLowerCase();
+    if(/\\b4k\\b|2160p|uhd/.test(texto))return 4;
+    if(/1080p|full[ ._-]?hd|\\bfhd\\b/.test(texto))return 3;
+    if(/720p|\\bhd\\b/.test(texto))return 2;
+    if(/480p|576p|sd/.test(texto))return 1;
+    return 0;
+}
+function deduplicarEpisodios(lista){
+    const elegidos=new Map();
+    (lista||[]).forEach(ep=>{
+        const key=String(ep.temporada||ep.season||1)+':'+String(ep.numero||ep.episodio||0);
+        const anterior=elegidos.get(key);
+        if(!anterior || puntuacionCalidadEpisodio(ep)>puntuacionCalidadEpisodio(anterior) ||
+           (puntuacionCalidadEpisodio(ep)===puntuacionCalidadEpisodio(anterior) && !!(ep.url||ep.stream_url)>!!(anterior.url||anterior.stream_url))){
+            elegidos.set(key,ep);
+        }
+    });
+    return [...elegidos.values()];
+}
+
 function normalizarTemporadas(datos){
     if(!Array.isArray(datos))return [];
 
@@ -372,6 +393,7 @@ function normalizarTemporadas(datos){
     /* Formato plano generado por el actualizador AllDebrid */
     const grupos={};
 
+    datos=deduplicarEpisodios(datos);
     datos.forEach(ep=>{
         const temporada=Number(ep.temporada||ep.season||1);
 
