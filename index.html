@@ -425,9 +425,9 @@ function puntuacionCalidad(item){
         item.quality_manual,item.quality,item.file_path,item.file_name,
         item.filename,item.source_name,item.title,item.name
     ].filter(Boolean).join(' ').toLowerCase();
-    if(/\\b4k\\b|2160p|uhd/.test(texto))return 4;
-    if(/1080p|full[ ._-]?hd|\\bfhd\\b/.test(texto))return 3;
-    if(/720p|\\bhd\\b/.test(texto))return 2;
+    if(/\b4k\b|2160p|uhd/.test(texto))return 4;
+    if(/1080p|full[ ._-]?hd|\bfhd\b/.test(texto))return 3;
+    if(/720p|\bhd\b/.test(texto))return 2;
     if(/480p|576p|sd/.test(texto))return 1;
     return 0;
 }
