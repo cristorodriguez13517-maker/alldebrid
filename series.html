@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SHARKTV - Series</title>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 
 <style>
 *{box-sizing:border-box}
@@ -100,6 +101,57 @@ outline:none!important;box-shadow:none!important
 
 <script>
 'use strict';
+
+/* REPRODUCCION SEGURA: el enlace directo solo se solicita al iniciar */
+const WORKER_URL = 'https://alldebrid-vlc.cristorodriguez13517.workers.dev/';
+const TURNSTILE_SITE_KEY = 'PON_AQUI_LA_SITE_KEY_PUBLICA';
+let turnstileWidgetId = null;
+let turnstileResolve = null;
+let turnstileReject = null;
+
+async function obtenerTokenTurnstile(){
+    const limite=Date.now()+15000;
+    while(!window.turnstile&&Date.now()<limite) await new Promise(r=>setTimeout(r,100));
+    if(!window.turnstile) throw new Error('No se pudo cargar la verificación anti-bots.');
+    let host=document.getElementById('turnstile-container');
+    if(!host){
+        host=document.createElement('div');
+        host.id='turnstile-container';
+        host.style.cssText='position:fixed;left:-10000px;top:0;z-index:-1';
+        document.body.appendChild(host);
+    }
+    if(turnstileWidgetId===null){
+        turnstileWidgetId=window.turnstile.render(host,{
+            sitekey:TURNSTILE_SITE_KEY,action:'reproducir',execution:'execute',appearance:'interaction-only',
+            callback:token=>{if(turnstileResolve){const done=turnstileResolve;turnstileResolve=null;turnstileReject=null;done(token);}},
+            'error-callback':()=>{if(turnstileReject){const fail=turnstileReject;turnstileResolve=null;turnstileReject=null;fail(new Error('Falló la verificación anti-bots. Vuelve a intentarlo.'));}},
+            'expired-callback':()=>{if(turnstileReject){const fail=turnstileReject;turnstileResolve=null;turnstileReject=null;fail(new Error('La verificación caducó. Vuelve a intentarlo.'));}}
+        });
+    }
+    return new Promise((resolve,reject)=>{
+        turnstileResolve=resolve;turnstileReject=reject;
+        window.turnstile.reset(turnstileWidgetId);
+        window.turnstile.execute(turnstileWidgetId);
+        setTimeout(()=>{
+            if(turnstileReject===reject){turnstileResolve=null;turnstileReject=null;reject(new Error('La verificación está tardando demasiado. Vuelve a intentarlo.'));}
+        },30000);
+    });
+}
+
+async function reproducirConWorker(tipo,registro){
+    const magnetId=String(registro?.magnet_id||'');
+    const filePath=String(registro?.file_path||'');
+    if(!/^\\d+$/.test(magnetId)||!filePath){alert('Este episodio no tiene un archivo disponible en AllDebrid.');return;}
+    try{
+        const token=await obtenerTokenTurnstile();
+        const response=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo,magnet_id:magnetId,file_path:filePath,token})});
+        const result=await response.json().catch(()=>({}));
+        if(!response.ok||!result.url) throw new Error(result.error||'No se pudo preparar la reproducción.');
+        abrirVLC(result.url);
+    }catch(error){console.error('Error de reproducción:',error);alert(error.message||'No se pudo iniciar la reproducción.');}
+    finally{if(window.turnstile&&turnstileWidgetId!==null)window.turnstile.reset(turnstileWidgetId);}
+}
+
 
 const header=document.getElementById('header');
 const headerInfo=document.getElementById('header-info');
@@ -461,7 +513,7 @@ function crearTemporada(temporada,index){
             currentSeasonIndex=index;
             currentEpisodeIndex=epIndex;
             updateSelected();
-            abrirVLC(ep.url||ep.stream_url||'');
+            reproducirConWorker('episode',ep);
         });
 
         list.appendChild(item);
