@@ -1217,6 +1217,19 @@ def actualizar_enlace_episodio(
 # ACTUALIZACION PRINCIPAL
 # ==========================================================
 
+
+def eliminar_enlaces_temporales(datos):
+    """Evita publicar enlaces de desbloqueo de corta duración en los JSON."""
+    if isinstance(datos, dict):
+        for campo in ("stream_url", "url", "pending_url"):
+            datos.pop(campo, None)
+        for valor in datos.values():
+            eliminar_enlaces_temporales(valor)
+    elif isinstance(datos, list):
+        for elemento in datos:
+            eliminar_enlaces_temporales(elemento)
+
+
 def main():
     print("--------------------------------")
     print("ACTUALIZANDO SHARKTV ALLDEBRID")
@@ -1605,6 +1618,11 @@ def main():
     # ======================================================
     # GUARDAR CATALOGOS
     # ======================================================
+
+    # Los enlaces temporales/directos nunca se publican en GitHub Pages.
+    # La reproduccion se desbloquea bajo demanda desde el Worker.
+    eliminar_enlaces_temporales(peliculas)
+    eliminar_enlaces_temporales(episodios)
 
     guardar("peliculas.json", peliculas)
     guardar("series.json", series)
