@@ -1044,25 +1044,7 @@ function renderCatalog(){
         });
 
 
-        /* CLIC */
-
-        card.addEventListener('click',event=>{
-
-            event.preventDefault();
-
-            selectMovie(card);
-
-            if(card.dataset.type === 'series'){
-
-                abrirSerie(item);
-
-            }else{
-
-                reproducirConWorker('movie',item);
-
-            }
-
-        });
+        /* El clic se gestiona de forma delegada desde movieRow. */
 
     });
 
@@ -1398,6 +1380,40 @@ function filterCatalog(){
 
 }
 
+
+/* CLICS DEL CATÁLOGO: delegación para ratón, táctil y mando */
+
+movieRow.addEventListener('click',event=>{
+
+    const card = event.target.closest('.movie');
+
+    if(!card || !movieRow.contains(card)) return;
+
+    event.preventDefault();
+
+    const item = catalog.find(entry =>
+        entry._type === card.dataset.type &&
+        String(entry.id || entry.tmdb_id || '') === String(card.dataset.id || '')
+    );
+
+    if(!item) {
+        alert('No se han podido identificar los datos de este título. Recarga la página.');
+        return;
+    }
+
+    selectMovie(card);
+
+    if(card.dataset.type === 'series') {
+        abrirSerie(item);
+    } else {
+        statusElement.hidden = false;
+        statusElement.textContent = 'Preparando reproducción…';
+        reproducirConWorker('movie',item).finally(()=>{
+            statusElement.hidden = true;
+        });
+    }
+
+});
 
 /* EVENTOS DEL BUSCADOR */
 
