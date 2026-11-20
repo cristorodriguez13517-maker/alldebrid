@@ -363,7 +363,7 @@ async function obtenerTokenTurnstile(){
     const host = document.getElementById('turnstile-container') || (() => {
         const node=document.createElement('div');
         node.id='turnstile-container';
-        node.style.cssText='position:fixed;left:-10000px;top:0;z-index:-1';
+        node.style.cssText='position:fixed;right:12px;bottom:12px;z-index:3000;background:#fff;padding:4px;border-radius:6px';
         document.body.appendChild(node);
         return node;
     })();
@@ -401,7 +401,7 @@ async function obtenerTokenTurnstile(){
 async function reproducirConWorker(tipo,registro){
     const magnetId=String(registro?.magnet_id||'');
     const filePath=String(registro?.file_path||'');
-    if(!/^\\d+$/.test(magnetId)||!filePath){
+    if(!/^\d+$/.test(magnetId)||!filePath){
         alert('Este título no tiene un archivo disponible en AllDebrid.');
         return;
     }
