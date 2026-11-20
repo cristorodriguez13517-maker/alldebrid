@@ -586,7 +586,7 @@ function mostrarTemporada(index){
 function openCurrentEpisode(){
     const ep=(episodeRecords[currentSeasonIndex]||[])[currentEpisodeIndex];
     if(!ep)return;
-    abrirVLC(ep.url||ep.stream_url||'');
+    reproducirConWorker('episode',ep);
 }
 
 /* CARGAR DETALLE DE SERIE */
