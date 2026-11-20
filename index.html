@@ -331,23 +331,6 @@ body{-webkit-tap-highlight-color:transparent}
 </div>
 
 
-<!-- REPRODUCTOR INTEGRADO -->
-<div id="player-modal" class="player-modal" role="dialog" aria-modal="true" aria-labelledby="player-title">
-  <div class="player-box">
-    <div class="player-top">
-      <h2 id="player-title">Reproductor SHARKTV</h2>
-      <button id="player-close" class="player-close" type="button">Cerrar ✕</button>
-    </div>
-    <div class="player-video-wrap">
-      <video id="shark-player" controls playsinline preload="metadata"></video>
-    </div>
-    <p id="player-message" class="player-message" aria-live="polite">
-      El reproductor integrado admite enlaces directos de vídeo compatibles con el navegador (por ejemplo MP4 y algunos HLS).
-    </p>
-    <div id="player-sources" class="source-list"></div>
-  </div>
-</div>
-
 <!-- CATÁLOGO MEZCLADO -->
 
 <div class="content">
@@ -377,12 +360,6 @@ const searchButton = document.getElementById('search-button');
 const movieRow = document.getElementById('movie-row');
 const statusElement = document.getElementById('status');
 
-const playerModal = document.getElementById('player-modal');
-const playerElement = document.getElementById('shark-player');
-const playerTitle = document.getElementById('player-title');
-const playerMessage = document.getElementById('player-message');
-const playerSources = document.getElementById('player-sources');
-const playerClose = document.getElementById('player-close');
 
 let catalog = [];
 let selectedMovie = null;
@@ -767,115 +744,6 @@ function streamOf(item){
 }
 
 
-/* REPRODUCTOR HTML5 INTEGRADO */
-
-function crearBotonFuente(texto, accion, clase){
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'source-button' + (clase ? ' ' + clase : '');
-    button.textContent = texto;
-    button.addEventListener('click', accion);
-    playerSources.appendChild(button);
-    return button;
-}
-
-function reproducirEnPagina(url, nombre){
-    if(!url){
-        playerMessage.textContent = 'Esta fuente no contiene un enlace directo de vídeo.';
-        return;
-    }
-
-    let parsed;
-    try{
-        parsed = new URL(url, window.location.href);
-    }catch(error){
-        playerMessage.textContent = 'El enlace de esta fuente no es válido.';
-        return;
-    }
-
-    if(!['http:','https:','blob:'].includes(parsed.protocol)){
-        playerMessage.textContent = 'El tipo de enlace no es compatible con el reproductor.';
-        return;
-    }
-
-    playerElement.pause();
-    playerElement.removeAttribute('src');
-    playerElement.load();
-    playerElement.src = parsed.href;
-    playerMessage.textContent = 'Cargando ' + (nombre || 'fuente') +
-        '. Si no comienza, el formato puede no ser compatible o el servidor puede bloquear la reproducción desde SHARKTV.';
-    playerElement.load();
-    playerElement.play().catch(()=>{
-        playerMessage.textContent = 'Pulsa reproducir. Si aparece un error, este enlace no es reproducible directamente en el navegador.';
-    });
-}
-
-function abrirReproductor(item){
-    const nombre = titleOf(item);
-    playerTitle.textContent = nombre;
-    playerSources.replaceChildren();
-    playerElement.pause();
-    playerElement.removeAttribute('src');
-    playerElement.load();
-
-    playerMessage.textContent =
-        'El reproductor integrado reproduce enlaces directos de vídeo. Los enlaces de descarga/página de AllDebrid y los torrents no son vídeos directos.';
-
-    const directSources = [
-        {label:'AllDebrid · vídeo directo', url:item.stream_url_manual || item.stream_url || item.url || ''},
-        {label:'YouTube', url:item.youtube_url || item.youtube_stream_url || ''}
-    ];
-
-    const torrentioDirect = item.torrentio_stream_url || item.torrentio_url || '';
-    const peerflixDirect = item.peerflix_stream_url || item.peerflix_url || '';
-
-    directSources.forEach(source=>{
-        if(source.url){
-            crearBotonFuente(source.label, ()=>reproducirEnPagina(source.url, source.label),
-                source.label.startsWith('AllDebrid') ? 'primary' : '');
-        }
-    });
-
-    if(torrentioDirect){
-        crearBotonFuente('Torrentio · enlace directo', ()=>reproducirEnPagina(torrentioDirect,'Torrentio'));
-    }else{
-        const b = crearBotonFuente('Torrentio', ()=>{
-            playerMessage.textContent = 'Torrentio entrega normalmente información de streams/torrents, no siempre un enlace de vídeo directo. GitHub Pages por sí solo no puede convertir un torrent en vídeo reproducible.';
-        });
-        b.title = 'Necesita un enlace directo o un servicio que resuelva el torrent.';
-    }
-
-    if(peerflixDirect){
-        crearBotonFuente('Peerflix · enlace directo', ()=>reproducirEnPagina(peerflixDirect,'Peerflix'));
-    }else{
-        crearBotonFuente('Peerflix', ()=>{
-            playerMessage.textContent = 'Peerflix no proporciona necesariamente un archivo de vídeo directo. Para reproducir torrents hace falta resolverlos mediante un cliente o servicio compatible.';
-        });
-    }
-
-    if(item.pending_url){
-        crearBotonFuente('AllDebrid · abrir enlace', ()=>{
-            window.open(item.pending_url, '_blank', 'noopener');
-        });
-    }
-
-    if(!directSources.some(source=>source.url) && !torrentioDirect && !peerflixDirect && !item.pending_url){
-        playerMessage.textContent =
-            'Este título todavía no tiene enlaces de reproducción en sus datos. Añade una dirección directa en stream_url o stream_url_manual dentro de peliculas.json.';
-    }
-
-    playerModal.classList.add('open');
-    playerClose.focus();
-}
-
-function cerrarReproductor(){
-    playerElement.pause();
-    playerElement.removeAttribute('src');
-    playerElement.load();
-    playerModal.classList.remove('open');
-}
-
-
 /* ABRIR VLC EN ANDROID */
 
 function abrirVLC(url){
@@ -1108,7 +976,7 @@ function renderCatalog(){
 
             }else{
 
-                abrirReproductor(item);
+                abrirVLC(item.stream_url_manual || item.stream_url || item.url || '');
 
             }
 
@@ -1652,7 +1520,7 @@ document.addEventListener('keydown',event=>{
                 x._type === 'movie' &&
                 String(x.tmdb_id || x.id || '') === String(activeCard.dataset.id || '')
             );
-            if(movieItem) abrirReproductor(movieItem);
+            if(movieItem) abrirVLC(movieItem.stream_url_manual || movieItem.stream_url || movieItem.url || '');
 
         }
 
@@ -1737,22 +1605,6 @@ document.addEventListener('keydown',event=>{
 },true);
 
 
-
-/* CONTROLES DEL REPRODUCTOR */
-
-playerClose.addEventListener('click', cerrarReproductor);
-
-playerModal.addEventListener('click', event=>{
-    if(event.target === playerModal) cerrarReproductor();
-});
-
-document.addEventListener('keydown', event=>{
-    if(playerModal.classList.contains('open') &&
-       (event.key === 'Escape' || event.keyCode === 27 || event.keyCode === 4)){
-        event.preventDefault();
-        cerrarReproductor();
-    }
-});
 
 /* REDIMENSIONAR */
 
