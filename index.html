@@ -361,7 +361,7 @@ async function prepararTurnstile(){
         });
     }
 }
-async function obtenerTokenTurnstile(){
+async function generarTokenTurnstile(){
     await prepararTurnstile();
     return new Promise((resolve,reject)=>{
         turnstileResolve=resolve;
@@ -376,8 +376,37 @@ async function obtenerTokenTurnstile(){
         },30000);
     });
 }
-// Prepara el widget invisible mientras se carga el catálogo, sin generar todavía ningún token.
-prepararTurnstile().catch(error=>console.warn('Turnstile aún no está listo:',error));
+
+let tokenTurnstileCache = '';
+let tokenTurnstileAt = 0;
+let tokenTurnstilePromise = null;
+const TOKEN_TURNSTILE_MAX_AGE = 240000;
+
+function precalentarTokenTurnstile(){
+    if(tokenTurnstileCache && Date.now()-tokenTurnstileAt < TOKEN_TURNSTILE_MAX_AGE) return Promise.resolve(tokenTurnstileCache);
+    if(tokenTurnstilePromise) return tokenTurnstilePromise;
+    tokenTurnstilePromise = generarTokenTurnstile().then(token=>{
+        tokenTurnstileCache=token;
+        tokenTurnstileAt=Date.now();
+        return token;
+    }).catch(error=>{
+        console.warn('No se pudo anticipar la verificación; se solicitará al reproducir:',error);
+        return '';
+    }).finally(()=>{tokenTurnstilePromise=null;});
+    return tokenTurnstilePromise;
+}
+async function obtenerTokenTurnstile(){
+    if(tokenTurnstileCache && Date.now()-tokenTurnstileAt < TOKEN_TURNSTILE_MAX_AGE){
+        const token=tokenTurnstileCache;
+        tokenTurnstileCache='';
+        tokenTurnstileAt=0;
+        return token;
+    }
+    return await precalentarTokenTurnstile() || await generarTokenTurnstile();
+}
+
+// Prepara el widget y adelanta la verificación sin bloquear la carga del catálogo.
+prepararTurnstile().then(()=>precalentarTokenTurnstile()).catch(error=>console.warn('Turnstile aún no está listo:',error));
 
 async function reproducirConWorker(tipo,registro){
     const magnetId=String(registro?.magnet_id||'');
@@ -408,6 +437,7 @@ async function reproducirConWorker(tipo,registro){
         if(window.turnstile&&turnstileWidgetId!==null){
             window.turnstile.reset(turnstileWidgetId);
         }
+        setTimeout(()=>precalentarTokenTurnstile(),700);
     }
 }
 
