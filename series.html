@@ -109,7 +109,7 @@ let turnstileWidgetId = null;
 let turnstileResolve = null;
 let turnstileReject = null;
 
-async function obtenerTokenTurnstile(){
+async function generarTokenTurnstile(){
     const limite=Date.now()+15000;
     while(!window.turnstile&&Date.now()<limite) await new Promise(r=>setTimeout(r,100));
     if(!window.turnstile) throw new Error('No se pudo cargar la verificación anti-bots.');
@@ -140,6 +140,37 @@ async function obtenerTokenTurnstile(){
     });
 }
 
+let tokenTurnstileCache = '';
+let tokenTurnstileAt = 0;
+let tokenTurnstilePromise = null;
+const TOKEN_TURNSTILE_MAX_AGE = 240000;
+
+function precalentarTokenTurnstile(){
+    if(tokenTurnstileCache && Date.now()-tokenTurnstileAt < TOKEN_TURNSTILE_MAX_AGE) return Promise.resolve(tokenTurnstileCache);
+    if(tokenTurnstilePromise) return tokenTurnstilePromise;
+    tokenTurnstilePromise = generarTokenTurnstile().then(token=>{
+        tokenTurnstileCache=token;
+        tokenTurnstileAt=Date.now();
+        return token;
+    }).catch(error=>{
+        console.warn('No se pudo anticipar la verificación; se solicitará al reproducir:',error);
+        return '';
+    }).finally(()=>{tokenTurnstilePromise=null;});
+    return tokenTurnstilePromise;
+}
+async function obtenerTokenTurnstile(){
+    if(tokenTurnstileCache && Date.now()-tokenTurnstileAt < TOKEN_TURNSTILE_MAX_AGE){
+        const token=tokenTurnstileCache;
+        tokenTurnstileCache='';
+        tokenTurnstileAt=0;
+        return token;
+    }
+    return await precalentarTokenTurnstile() || await generarTokenTurnstile();
+}
+
+// La verificación se inicia en segundo plano para que VLC pueda abrirse antes.
+setTimeout(()=>precalentarTokenTurnstile(),0);
+
 async function reproducirConWorker(tipo,registro){
     const magnetId=String(registro?.magnet_id||'');
     const filePath=String(registro?.file_path||'');
@@ -156,6 +187,7 @@ async function reproducirConWorker(tipo,registro){
     finally{
         statusEl.hidden=true;
         if(window.turnstile&&turnstileWidgetId!==null)window.turnstile.reset(turnstileWidgetId);
+        setTimeout(()=>precalentarTokenTurnstile(),700);
     }
 }
 
