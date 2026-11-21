@@ -122,7 +122,7 @@ async function obtenerTokenTurnstile(){
     }
     if(turnstileWidgetId===null){
         turnstileWidgetId=window.turnstile.render(host,{
-            sitekey:TURNSTILE_SITE_KEY,action:'reproducir',execution:'execute',appearance:'always',
+            sitekey:TURNSTILE_SITE_KEY,action:'reproducir',execution:'execute',size:'invisible',appearance:'interaction-only',
             callback:token=>{if(turnstileResolve){const done=turnstileResolve;turnstileResolve=null;turnstileReject=null;done(token);}},
             'error-callback':code=>{console.error('Turnstile error:',code);if(turnstileReject){const fail=turnstileReject;turnstileResolve=null;turnstileReject=null;fail(new Error('Cloudflare Turnstile: error '+(code||'desconocido')+'. Revisa la Site Key y el dominio autorizado.'));}},
             'unsupported-callback':()=>{if(turnstileReject){const fail=turnstileReject;turnstileResolve=null;turnstileReject=null;fail(new Error('Este navegador no es compatible con la verificación de Cloudflare.'));}},
@@ -144,6 +144,8 @@ async function reproducirConWorker(tipo,registro){
     const magnetId=String(registro?.magnet_id||'');
     const filePath=String(registro?.file_path||'');
     if(!/^\d+$/.test(magnetId)||!filePath){alert('Este episodio no tiene un archivo disponible en AllDebrid.');return;}
+    statusEl.hidden=false;
+    statusEl.textContent='Verificando seguridad y preparando reproducción…';
     try{
         const token=await obtenerTokenTurnstile();
         const response=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo,magnet_id:magnetId,file_path:filePath,token})});
@@ -151,7 +153,10 @@ async function reproducirConWorker(tipo,registro){
         if(!response.ok||!result.url) throw new Error(result.error||'No se pudo preparar la reproducción.');
         abrirVLC(result.url);
     }catch(error){console.error('Error de reproducción:',error);alert(error.message||'No se pudo iniciar la reproducción.');}
-    finally{if(window.turnstile&&turnstileWidgetId!==null)window.turnstile.reset(turnstileWidgetId);}
+    finally{
+        statusEl.hidden=true;
+        if(window.turnstile&&turnstileWidgetId!==null)window.turnstile.reset(turnstileWidgetId);
+    }
 }
 
 
