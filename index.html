@@ -363,7 +363,7 @@ async function obtenerTokenTurnstile(){
     const host = document.getElementById('turnstile-container') || (() => {
         const node=document.createElement('div');
         node.id='turnstile-container';
-        node.style.cssText='position:fixed;right:12px;bottom:12px;z-index:3000;background:#fff;padding:4px;border-radius:6px';
+        node.style.cssText='position:fixed;right:12px;bottom:12px;z-index:3000;background:transparent;padding:0;border:0;border-radius:0';
         document.body.appendChild(node);
         return node;
     })();
