@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="./shark-player.css">
+
 <title>SHARKTV</title>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 
@@ -284,6 +286,19 @@ body{-webkit-tap-highlight-color:transparent}
 
 <body>
 
+<!-- REPRODUCTOR INTEGRADO ALLDEBRID -->
+<div id="shark-player-modal" hidden role="dialog" aria-modal="true" aria-label="Reproductor SHARKTV">
+ <div class="shark-player-bar">
+  <div id="shark-player-title" class="shark-player-title">SHARKTV</div>
+  <button id="shark-player-close" class="shark-player-close" type="button">Cerrar ✕</button>
+ </div>
+ <div class="shark-player-stage">
+  <video id="shark-player-video" controls playsinline preload="metadata"></video>
+ </div>
+ <div id="shark-player-status" class="shark-player-status" aria-live="polite"></div>
+</div>
+
+
 <!-- BUSCADOR -->
 
 <div class="search-container">
@@ -344,6 +359,7 @@ body{-webkit-tap-highlight-color:transparent}
 
 </div>
 
+<script src="./shark-player.js"></script>
 <script>
 'use strict';
 
@@ -431,7 +447,7 @@ async function reproducirConWorker(tipo,registro){
         if(!response.ok||!result.url){
             throw new Error(result.error||'No se pudo preparar la reproducción.');
         }
-        abrirVLC(result.url);
+        abrirReproductorAllDebrid(result.url,titleOf(registro));
     }catch(error){
         console.error('Error de reproducción:',error);
         alert(error.message||'No se pudo iniciar la reproducción.');
