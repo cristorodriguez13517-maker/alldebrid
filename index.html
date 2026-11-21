@@ -372,7 +372,8 @@ async function obtenerTokenTurnstile(){
             sitekey:TURNSTILE_SITE_KEY,
             action:'reproducir',
             execution:'execute',
-            appearance:'always',
+            size:'invisible',
+            appearance:'interaction-only',
             callback:token=>{
                 if(turnstileResolve){const done=turnstileResolve;turnstileResolve=null;turnstileReject=null;done(token);}
             },
@@ -412,6 +413,8 @@ async function reproducirConWorker(tipo,registro){
         alert('Este título no tiene un archivo disponible en AllDebrid.');
         return;
     }
+    statusElement.hidden = false;
+    statusElement.textContent = 'Verificando seguridad y preparando reproducción…';
     try{
         const token=await obtenerTokenTurnstile();
         const response=await fetch(WORKER_URL,{
@@ -428,6 +431,7 @@ async function reproducirConWorker(tipo,registro){
         console.error('Error de reproducción:',error);
         alert(error.message||'No se pudo iniciar la reproducción.');
     }finally{
+        statusElement.hidden = true;
         if(window.turnstile&&turnstileWidgetId!==null){
             window.turnstile.reset(turnstileWidgetId);
         }
@@ -1413,11 +1417,7 @@ movieRow.addEventListener('click',event=>{
     if(card.dataset.type === 'series') {
         abrirSerie(item);
     } else {
-        statusElement.hidden = false;
-        statusElement.textContent = 'Preparando reproducción…';
-        reproducirConWorker('movie',item).finally(()=>{
-            statusElement.hidden = true;
-        });
+        reproducirConWorker('movie',item);
     }
 
 });
