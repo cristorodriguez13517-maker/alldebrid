@@ -354,7 +354,7 @@ let turnstileWidgetId = null;
 let turnstileResolve = null;
 let turnstileReject = null;
 
-async function obtenerTokenTurnstile(){
+async function prepararTurnstile(){
     const limite = Date.now() + 15000;
     while(!window.turnstile && Date.now() < limite){
         await new Promise(resolve=>setTimeout(resolve,100));
@@ -392,6 +392,9 @@ async function obtenerTokenTurnstile(){
             }
         });
     }
+}
+async function obtenerTokenTurnstile(){
+    await prepararTurnstile();
     return new Promise((resolve,reject)=>{
         turnstileResolve=resolve;
         turnstileReject=reject;
@@ -405,6 +408,8 @@ async function obtenerTokenTurnstile(){
         },30000);
     });
 }
+// Prepara el widget invisible mientras se carga el catálogo, sin generar todavía ningún token.
+prepararTurnstile().catch(error=>console.warn('Turnstile aún no está listo:',error));
 
 async function reproducirConWorker(tipo,registro){
     const magnetId=String(registro?.magnet_id||'');
