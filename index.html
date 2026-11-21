@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="./shark-player.css">
 
 <title>SHARKTV</title>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
@@ -250,56 +249,10 @@ body{-webkit-tap-highlight-color:transparent}
     }
 }
 
-/* REPRODUCTOR INTEGRADO */
-.player-modal{
-    display:none;
-    position:fixed;
-    inset:0;
-    z-index:2000;
-    background:rgba(0,0,0,.96);
-    padding:18px;
-    overflow:auto;
-}
-.player-modal.open{display:flex;align-items:center;justify-content:center}
-.player-box{width:min(100%,980px);margin:auto}
-.player-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
-.player-top h2{font-size:20px;margin:0}
-.player-close,.source-button{
-    border:1px solid #555;border-radius:8px;background:#181818;color:#fff;
-    padding:11px 14px;font-size:15px;cursor:pointer;min-height:44px
-}
-.player-close:focus-visible,.source-button:focus-visible{outline:2px solid #e50914;outline-offset:2px}
-.player-video-wrap{background:#000;border:1px solid #333;border-radius:10px;overflow:hidden}
-#shark-player{display:block;width:100%;max-height:68vh;aspect-ratio:16/9;background:#000}
-.player-message{color:#bbb;font-size:13px;line-height:1.5;margin:12px 0}
-.source-list{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
-.source-button.primary{background:#e50914;border-color:#e50914}
-.source-button:disabled{opacity:.45;cursor:not-allowed}
-@media(max-width:600px){
- .player-modal{padding:10px}
- .player-top h2{font-size:16px}
- #shark-player{max-height:55vh}
-}
-
 </style>
 </head>
 
 <body>
-
-<!-- REPRODUCTOR INTEGRADO ALLDEBRID -->
-<div id="shark-player-modal" hidden role="dialog" aria-modal="true" aria-label="Reproductor SHARKTV">
- <div class="shark-player-bar">
-  <div id="shark-player-title" class="shark-player-title">SHARKTV</div>
-  <button id="shark-player-close" class="shark-player-close" type="button">Cerrar ✕</button>
- </div>
- <div class="shark-player-stage">
-  <video id="shark-player-video" controls playsinline preload="metadata"></video>
- </div>
- <div id="shark-player-status" class="shark-player-status" aria-live="polite"></div>
-</div>
-
-
-<!-- BUSCADOR -->
 
 <div class="search-container">
 
@@ -359,7 +312,6 @@ body{-webkit-tap-highlight-color:transparent}
 
 </div>
 
-<script src="./shark-player.js"></script>
 <script>
 'use strict';
 
@@ -447,7 +399,7 @@ async function reproducirConWorker(tipo,registro){
         if(!response.ok||!result.url){
             throw new Error(result.error||'No se pudo preparar la reproducción.');
         }
-        abrirReproductorAllDebrid(result.url,titleOf(registro));
+        abrirVLC(result.url);
     }catch(error){
         console.error('Error de reproducción:',error);
         alert(error.message||'No se pudo iniciar la reproducción.');
