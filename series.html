@@ -143,12 +143,18 @@ async function generarTokenTurnstile(){
 let tokenTurnstileCache = '';
 let tokenTurnstileAt = 0;
 let tokenTurnstilePromise = null;
-const TOKEN_TURNSTILE_MAX_AGE = 240000;
+let reproduccionEnCurso = false;
+const TOKEN_TURNSTILE_MAX_AGE = 210000;
+const TOKEN_TURNSTILE_RENEW_AFTER = 150000;
 
 function precalentarTokenTurnstile(){
+    if(document.hidden) return Promise.resolve('');
     if(tokenTurnstileCache && Date.now()-tokenTurnstileAt < TOKEN_TURNSTILE_MAX_AGE) return Promise.resolve(tokenTurnstileCache);
     if(tokenTurnstilePromise) return tokenTurnstilePromise;
+    tokenTurnstileCache = '';
+    tokenTurnstileAt = 0;
     tokenTurnstilePromise = generarTokenTurnstile().then(token=>{
+        if(typeof token !== 'string' || !token) throw new Error('Cloudflare no devolvió un token válido.');
         tokenTurnstileCache=token;
         tokenTurnstileAt=Date.now();
         return token;
@@ -158,6 +164,7 @@ function precalentarTokenTurnstile(){
     }).finally(()=>{tokenTurnstilePromise=null;});
     return tokenTurnstilePromise;
 }
+
 async function obtenerTokenTurnstile(){
     if(tokenTurnstileCache && Date.now()-tokenTurnstileAt < TOKEN_TURNSTILE_MAX_AGE){
         const token=tokenTurnstileCache;
@@ -165,18 +172,45 @@ async function obtenerTokenTurnstile(){
         tokenTurnstileAt=0;
         return token;
     }
+    tokenTurnstileCache='';
+    tokenTurnstileAt=0;
     return await precalentarTokenTurnstile() || await generarTokenTurnstile();
 }
 
-// La verificación se inicia en segundo plano para que VLC pueda abrirse antes.
-setTimeout(()=>precalentarTokenTurnstile(),0);
+// Adelanta la verificación al cargar y también cuando el usuario vuelve a la página.
+function iniciarPreparacionTurnstile(){
+    if(!document.hidden) precalentarTokenTurnstile();
+}
+iniciarPreparacionTurnstile();
+document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden){
+        if(tokenTurnstileCache && Date.now()-tokenTurnstileAt >= TOKEN_TURNSTILE_RENEW_AFTER){
+            tokenTurnstileCache='';
+            tokenTurnstileAt=0;
+        }
+        iniciarPreparacionTurnstile();
+    }
+});
+// Renueva el token antes de que se acerque a su caducidad.
+setInterval(()=>{
+    if(document.hidden) return;
+    if(tokenTurnstileCache && Date.now()-tokenTurnstileAt >= TOKEN_TURNSTILE_RENEW_AFTER){
+        tokenTurnstileCache='';
+        tokenTurnstileAt=0;
+    }
+    if(!tokenTurnstileCache && !tokenTurnstilePromise) precalentarTokenTurnstile();
+},30000);
+// Reintenta si Turnstile aún estaba inicializándose al cargar.
+setTimeout(()=>{if(!tokenTurnstileCache && !tokenTurnstilePromise) precalentarTokenTurnstile();},1800);
 
 async function reproducirConWorker(tipo,registro){
+    if(reproduccionEnCurso) return;
     const magnetId=String(registro?.magnet_id||'');
     const filePath=String(registro?.file_path||'');
     if(!/^\d+$/.test(magnetId)||!filePath){alert('Este episodio no tiene un archivo disponible en AllDebrid.');return;}
     statusEl.hidden=false;
     statusEl.textContent='Verificando seguridad y preparando reproducción…';
+    reproduccionEnCurso=true;
     try{
         const token=await obtenerTokenTurnstile();
         const response=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo,magnet_id:magnetId,file_path:filePath,token})});
@@ -185,6 +219,7 @@ async function reproducirConWorker(tipo,registro){
         abrirVLC(result.url);
     }catch(error){console.error('Error de reproducción:',error);alert(error.message||'No se pudo iniciar la reproducción.');}
     finally{
+        reproduccionEnCurso=false;
         statusEl.hidden=true;
         if(window.turnstile&&turnstileWidgetId!==null)window.turnstile.reset(turnstileWidgetId);
         setTimeout(()=>precalentarTokenTurnstile(),700);
