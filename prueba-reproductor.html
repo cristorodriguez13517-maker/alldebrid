@@ -1,108 +1,104 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SHARKTV · Prueba de reproductor</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SHARKTV · Reproductor unificado</title>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <style>
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#000;color:#fff;font-family:Arial,sans-serif}
-body{padding:24px;max-width:1100px;margin:auto}
-h1{font-size:clamp(25px,4vw,38px);margin:0 0 8px}h1 span{color:#e50914}
-p{color:#aaa;line-height:1.5}.panel{background:#111;border:1px solid #292929;border-radius:12px;padding:18px;margin:18px 0}
-select,button{font:inherit;border-radius:8px;padding:12px 14px}
-select{width:100%;background:#080808;color:#fff;border:1px solid #444;margin:8px 0 12px}
-button{background:#e50914;color:#fff;border:0;font-weight:bold;cursor:pointer;margin:4px 6px 4px 0}
-button:disabled{opacity:.5;cursor:wait}
-video{display:block;width:100%;max-height:68vh;background:#050505;border-radius:10px}
-#status{min-height:24px;color:#ddd;font-size:14px;overflow-wrap:anywhere}
-small{color:#888}.ok{color:#67d391!important}.bad{color:#ff7777!important}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#050505;color:#fff;font-family:Arial,sans-serif}
+body{padding:22px;max-width:1150px;margin:auto}h1{font-size:clamp(25px,4vw,38px);margin:0 0 8px}h1 span{color:#e50914}p{color:#aaa;line-height:1.5}
+.panel{background:#111;border:1px solid #292929;border-radius:12px;padding:17px;margin:16px 0}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}label{font-weight:bold}
+select,input,button{font:inherit;border-radius:8px;padding:11px 13px}
+select,input{background:#080808;color:#fff;border:1px solid #444}
+select{min-width:170px;flex:1}input[type=text]{min-width:220px;flex:1}
+button{background:#292929;color:#fff;border:1px solid #444;font-weight:bold;cursor:pointer}
+button.primary{background:#e50914;border-color:#e50914}button:disabled{opacity:.5;cursor:wait}
+#stage{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden}
+#video,#yt-player{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+#yt-player{display:none}.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+#seek{flex:1;min-width:150px;padding:0;accent-color:#e50914}.time{font-size:13px;color:#ddd;font-variant-numeric:tabular-nums}
+#status{min-height:24px;color:#ddd;font-size:14px;overflow-wrap:anywhere}.ok{color:#67d391!important}.bad{color:#ff7777!important}
+small{color:#888}.hint{font-size:13px;color:#999}
 </style>
 </head>
 <body>
-<h1><span>SHARK</span>TV · Prueba de reproductor</h1>
-<p>Prueba aislada del reproductor HTML5 con un enlace generado por el Worker AllDebrid actual. No cambia la página principal ni el Worker.</p>
+<h1><span>SHARK</span>TV · Reproductor unificado</h1>
+<p>Una misma interfaz de prueba para archivos AllDebrid y vídeos de YouTube. El motor cambia según el origen; no se modifican los catálogos ni el Worker.</p>
 <section class="panel">
-<label for="title">Elige una película AllDebrid</label>
-<select id="title"><option>Cargando catálogo…</option></select>
-<button id="start">Preparar reproducción</button>
-<div id="status" role="status">Cargando catálogo…</div>
+<div class="row">
+<label for="source">Origen</label>
+<select id="source"><option value="alldebrid">AllDebrid</option><option value="youtube">YouTube</option></select>
+</div>
+<div id="ad-controls" style="margin-top:12px">
+<label for="title">Película AllDebrid</label>
+<div class="row"><select id="title"><option>Cargando catálogo…</option></select><button class="primary" id="start-ad">Preparar reproducción</button></div>
+</div>
+<div id="yt-controls" style="display:none;margin-top:12px">
+<label for="yt-id">Enlace o ID de YouTube</label>
+<div class="row"><input id="yt-id" type="text" value="https://youtu.be/NwUZt8H3UBc" autocomplete="off"><button class="primary" id="start-yt">Cargar vídeo</button></div>
+</div>
+<div id="status" role="status">Cargando catálogo AllDebrid y reproductor de YouTube…</div>
 </section>
 <section class="panel">
-<video id="video" controls playsinline preload="metadata"></video>
-<p id="result"><small>Al cargar el vídeo veremos si el navegador reconoce el formato MKV y puede reproducirlo.</small></p>
+<div id="stage"><video id="video" playsinline preload="metadata"></video><div id="yt-player"></div></div>
+<div class="controls">
+<button class="primary" id="play">▶ Reproducir</button><button id="pause">Ⅱ Pausar</button>
+<button id="back">−10 s</button><button id="forward">+10 s</button>
+<input id="seek" type="range" min="0" max="1000" value="0" aria-label="Progreso">
+<span class="time" id="clock">0:00 / 0:00</span><button id="fullscreen">⛶ Pantalla completa</button>
+</div>
+<p id="result" class="hint">Selecciona el origen y carga un vídeo para probarlo.</p>
 </section>
+<p class="hint">YouTube se reproduce mediante su reproductor oficial. Si YouTube bloquea la inserción por copyright, región, edad o permisos, la prueba mostrará el error; no se eluden esas restricciones. No se solicita tu cuenta, contraseña ni cookies.</p>
 <script>
 'use strict';
 const WORKER_URL='https://alldebrid-vlc.cristorodriguez13517.workers.dev/';
 const TURNSTILE_SITE_KEY='0x4AAAAAAGK-CFVW1ivlcFRe';
-const select=document.getElementById('title');
-const status=document.getElementById('status');
-const resultText=document.getElementById('result');
-const video=document.getElementById('video');
-const start=document.getElementById('start');
-let widgetId=null,resolveToken=null,rejectToken=null,items=[];
-function setStatus(message,kind=''){status.textContent=message;status.className=kind;}
+const $=id=>document.getElementById(id), video=$('video'), ytBox=$('yt-player');
+let widgetId=null,resolveToken=null,rejectToken=null,items=[],yt=null,active='alldebrid',ytReady=false,duration=0,tick=null,seeking=false;
+function setStatus(m,k=''){ $('status').textContent=m;$('status').className=k; }
+function fmt(n){n=Math.max(0,Math.floor(n||0));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')}
+function parseYouTubeId(raw){const s=raw.trim();if(/^[a-zA-Z0-9_-]{11}$/.test(s))return s;try{const u=new URL(s);if(u.hostname==='youtu.be')return u.pathname.split('/').filter(Boolean)[0]||null;if(u.hostname.endsWith('youtube.com'))return u.searchParams.get('v')||u.pathname.split('/').filter(Boolean).pop()||null}catch(e){}return null}
+function updateClock(t,d){duration=d||0;if(!$('seek').matches(':active')&&!seeking)$('seek').value=duration?Math.round((t/duration)*1000):0;$('clock').textContent=fmt(t)+' / '+fmt(duration)}
+function showMode(mode){active=mode;const isYT=mode==='youtube';$('ad-controls').style.display=isYT?'none':'block';$('yt-controls').style.display=isYT?'block':'none';video.style.display=isYT?'none':'block';ytBox.style.display=isYT?'block':'none';$('seek').value=0;$('clock').textContent='0:00 / 0:00';}
+$('source').addEventListener('change',e=>{showMode(e.target.value);setStatus(e.target.value==='youtube'?'Introduce un enlace o ID de YouTube y pulsa Cargar vídeo.':'Selecciona un archivo AllDebrid y pulsa Preparar reproducción.');});
 async function getToken(){
- const until=Date.now()+15000;
- while(!window.turnstile&&Date.now()<until) await new Promise(r=>setTimeout(r,100));
- if(!window.turnstile) throw new Error('No se pudo cargar Turnstile.');
- if(widgetId===null){
-  widgetId=window.turnstile.render(document.body,{
-   sitekey:TURNSTILE_SITE_KEY,action:'reproducir',execution:'execute',size:'invisible',appearance:'interaction-only',
-   callback:t=>{if(resolveToken){const r=resolveToken;resolveToken=null;rejectToken=null;r(t);}},
-   'error-callback':c=>{if(rejectToken){const r=rejectToken;resolveToken=null;rejectToken=null;r(new Error('Error Turnstile '+c));}},
-   'timeout-callback':()=>{if(rejectToken){const r=rejectToken;resolveToken=null;rejectToken=null;r(new Error('Tiempo de verificación agotado'));}},
-   'expired-callback':()=>{if(rejectToken){const r=rejectToken;resolveToken=null;rejectToken=null;r(new Error('Verificación caducada'));}}
-  });
- }
- return new Promise((resolve,reject)=>{
-  resolveToken=resolve;rejectToken=reject;
-  window.turnstile.reset(widgetId);window.turnstile.execute(widgetId);
-  setTimeout(()=>{if(rejectToken===reject){resolveToken=null;rejectToken=null;reject(new Error('La verificación está tardando demasiado'));}},30000);
- });
+ const until=Date.now()+15000;while(!window.turnstile&&Date.now()<until)await new Promise(r=>setTimeout(r,100));
+ if(!window.turnstile)throw new Error('No se pudo cargar Turnstile.');
+ if(widgetId===null)widgetId=window.turnstile.render(document.body,{sitekey:TURNSTILE_SITE_KEY,action:'reproducir',execution:'execute',size:'invisible',appearance:'interaction-only',
+ callback:t=>{if(resolveToken){const r=resolveToken;resolveToken=null;rejectToken=null;r(t)}},
+ 'error-callback':c=>{if(rejectToken){const r=rejectToken;resolveToken=null;rejectToken=null;r(new Error('Error Turnstile '+c))}},
+ 'timeout-callback':()=>{if(rejectToken){const r=rejectToken;resolveToken=null;rejectToken=null;r(new Error('Tiempo de verificación agotado'))}},
+ 'expired-callback':()=>{if(rejectToken){const r=rejectToken;resolveToken=null;rejectToken=null;r(new Error('Verificación caducada'))}}});
+ return new Promise((resolve,reject)=>{resolveToken=resolve;rejectToken=reject;window.turnstile.reset(widgetId);window.turnstile.execute(widgetId);setTimeout(()=>{if(rejectToken===reject){resolveToken=null;rejectToken=null;reject(new Error('La verificación está tardando demasiado'))}},30000)});
 }
-async function load(){
- try{
-  const response=await fetch('./peliculas.json',{cache:'no-store'});
-  if(!response.ok) throw new Error('No se pudo cargar peliculas.json');
-  const data=await response.json();
-  items=data.filter(x=>x&&/^\d+$/.test(String(x.magnet_id||''))&&x.file_path);
-  select.innerHTML='';
-  items.slice(0,100).forEach((item,i)=>{
-   const option=document.createElement('option');option.value=String(i);
-   option.textContent=(item.title||'Película')+' · '+(item.quality||'calidad no indicada')+' · '+(item.file_path.split('.').pop()||'');
-   select.appendChild(option);
-  });
-  setStatus(items.length+' archivos AllDebrid disponibles. Selecciona uno y pulsa Preparar reproducción.');
- }catch(e){setStatus(e.message,'bad');}
-}
-start.addEventListener('click',async()=>{
- const item=items[Number(select.value)];
- if(!item)return;
- start.disabled=true;video.pause();video.removeAttribute('src');video.load();
- resultText.textContent='Esperando metadatos del vídeo…';
- try{
-  setStatus('Verificando seguridad y solicitando enlace al Worker…');
-  const token=await getToken();
-  const response=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo:'movie',magnet_id:String(item.magnet_id),file_path:String(item.file_path),token})});
-  const data=await response.json().catch(()=>({}));
-  if(!response.ok||!data.url)throw new Error(data.error||'El Worker no devolvió un enlace reproducible.');
-  video.src=data.url;video.load();
-  setStatus('Enlace recibido. Comprueba si aparece imagen y sonido.','ok');
-  try{await video.play();}catch(e){setStatus('Enlace recibido. Pulsa ▶ en el vídeo para probarlo.','ok');}
- }catch(e){setStatus(e.message||'No se pudo iniciar la prueba.','bad');}
- finally{start.disabled=false;if(window.turnstile&&widgetId!==null)window.turnstile.reset(widgetId);}
-});
-video.addEventListener('loadedmetadata',()=>{resultText.textContent='El navegador ha reconocido el vídeo. Duración: '+(Number.isFinite(video.duration)?Math.round(video.duration/60)+' minutos':'no disponible')+'.';resultText.className='ok';});
-video.addEventListener('canplay',()=>{setStatus('El navegador puede reproducir este archivo. ¡Prueba superada!','ok');});
-video.addEventListener('error',()=>{
- const e=video.error;const messages={1:'Carga cancelada.',2:'Error de red o de acceso al enlace.',3:'El navegador no puede decodificar el formato o códec.',4:'Formato o fuente no compatible con este navegador.'};
- const message=e?(messages[e.code]||('Error de vídeo '+e.code)): 'Error de reproducción.';
- resultText.textContent=message+' (Código '+(e?e.code:'desconocido')+').';
- resultText.className='bad';setStatus('El enlace se obtuvo, pero el reproductor del navegador no pudo reproducirlo.','bad');
-});
-load();
+async function loadCatalog(){try{const r=await fetch('./peliculas.json',{cache:'no-store'});if(!r.ok)throw new Error('No se pudo cargar peliculas.json');const data=await r.json();items=data.filter(x=>x&&/^\d+$/.test(String(x.magnet_id||''))&&x.file_path);$('title').innerHTML='';items.slice(0,100).forEach((item,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=(item.title||'Película')+' · '+(item.quality||'calidad no indicada');$('title').appendChild(o)});setStatus(items.length+' archivos AllDebrid disponibles. También puedes seleccionar YouTube.')}catch(e){setStatus(e.message,'bad')}}
+$('start-ad').onclick=async()=>{
+ const item=items[Number($('title').value)];if(!item)return;
+ $('start-ad').disabled=true;video.pause();video.removeAttribute('src');video.load();if(yt&&yt.stopVideo)yt.stopVideo();
+ $('result').textContent='Solicitando enlace de reproducción AllDebrid…';
+ try{setStatus('Verificando seguridad y solicitando enlace al Worker…');const token=await getToken();const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo:'movie',magnet_id:String(item.magnet_id),file_path:String(item.file_path),token})});const data=await r.json().catch(()=>({}));if(!r.ok||!data.url)throw new Error(data.error||'El Worker no devolvió un enlace reproducible.');video.src=data.url;video.load();setStatus('Enlace recibido. Comprueba imagen y sonido.','ok');try{await video.play()}catch(e){setStatus('Enlace recibido. Pulsa Reproducir.','ok')}}catch(e){setStatus(e.message||'No se pudo iniciar la prueba.','bad')}finally{$('start-ad').disabled=false;if(window.turnstile&&widgetId!==null)window.turnstile.reset(widgetId)}
+};
+$('start-yt').onclick=()=>{const id=parseYouTubeId($('yt-id').value);if(!id||id.length!==11){setStatus('No reconozco el enlace o ID de YouTube.','bad');return}if(!ytReady||!yt){setStatus('El reproductor oficial de YouTube aún está cargando. Espera unos segundos.');return}video.pause();video.removeAttribute('src');video.load();yt.loadVideoById(id);$('result').textContent='Solicitando reproducción al reproductor oficial de YouTube…';setStatus('Vídeo enviado al reproductor de YouTube. Si está bloqueado para inserción, aparecerá el error oficial.');};
+$('play').onclick=()=>active==='youtube'?(yt&&yt.playVideo()):video.play().catch(()=>{});
+$('pause').onclick=()=>active==='youtube'?(yt&&yt.pauseVideo()):video.pause();
+function seekBy(delta){if(active==='youtube'&&yt){const t=yt.getCurrentTime()||0;yt.seekTo(Math.max(0,Math.min(yt.getDuration()||0,t+delta)),true)}else if(Number.isFinite(video.duration)){video.currentTime=Math.max(0,Math.min(video.duration,video.currentTime+delta))}}
+$('back').onclick=()=>seekBy(-10);$('forward').onclick=()=>seekBy(10);
+$('seek').oninput=()=>seeking=true;$('seek').onchange=e=>{const f=Number(e.target.value)/1000;if(active==='youtube'&&yt&&yt.getDuration())yt.seekTo(f*yt.getDuration(),true);else if(Number.isFinite(video.duration))video.currentTime=f*video.duration;seeking=false};
+$('fullscreen').onclick=()=>{const el=$('stage');if(el.requestFullscreen)el.requestFullscreen();else if(active==='youtube'&&yt&&yt.getIframe())yt.getIframe().requestFullscreen?.()};
+video.addEventListener('loadedmetadata',()=>{$('result').textContent='Vídeo reconocido. Duración: '+(Number.isFinite(video.duration)?fmt(video.duration):'no disponible')+'.';$('result').className='ok';updateClock(0,video.duration)});
+video.addEventListener('timeupdate',()=>updateClock(video.currentTime,video.duration));
+video.addEventListener('canplay',()=>setStatus('AllDebrid: el navegador puede reproducir este archivo. ¡Prueba superada!','ok'));
+video.addEventListener('error',()=>{const e=video.error;const m={1:'Carga cancelada.',2:'Error de red o acceso al enlace.',3:'El navegador no puede decodificar el formato o códec.',4:'Formato o fuente no compatible.'};$('result').textContent=(m[e?.code]||'Error de reproducción')+' Código '+(e?.code||'?')+'.';$('result').className='bad';setStatus('El enlace se obtuvo, pero el navegador no pudo reproducirlo.','bad')});
+window.onYouTubeIframeAPIReady=()=>{yt=new YT.Player('yt-player',{width:'100%',height:'100%',videoId:'',playerVars:{playsinline:1,controls:0,rel:0,fs:0,disablekb:1},events:{
+ onReady:()=>{ytReady=true;setStatus('Ambos motores están listos. Selecciona AllDebrid o YouTube.','ok')},
+ onStateChange:e=>{if(e.data===YT.PlayerState.PLAYING){setStatus('YouTube: reproduciendo con el reproductor oficial.','ok');$('result').textContent='YouTube está reproduciendo.'}if(e.data===YT.PlayerState.PAUSED)setStatus('YouTube: reproducción pausada.','ok');if(e.data===YT.PlayerState.ENDED)setStatus('YouTube: vídeo terminado.','ok');},
+ onError:e=>{const m={2:'ID o parámetro de vídeo incorrecto.',5:'Error del reproductor HTML5 de YouTube.',100:'Vídeo no disponible, eliminado o privado.',101:'El propietario o la política del vídeo no permite reproducirlo incrustado.',150:'El vídeo no permite reproducción incrustada.',153:'YouTube no recibió la identificación HTTP Referer requerida.'};const msg=m[e.data]||'YouTube no pudo reproducir el vídeo.';$('result').textContent=msg+' Código '+e.data+'.';$('result').className='bad';setStatus('YouTube ha rechazado la reproducción: '+msg,'bad')}
+}})};
+setInterval(()=>{if(active==='youtube'&&yt&&ytReady){try{updateClock(yt.getCurrentTime(),yt.getDuration())}catch(e){}}},500);
+document.addEventListener('keydown',e=>{if(['INPUT','SELECT','BUTTON'].includes(document.activeElement.tagName))return;if(e.key==='ArrowLeft'){e.preventDefault();seekBy(-10)}if(e.key==='ArrowRight'){e.preventDefault();seekBy(10)}if(e.key===' '){e.preventDefault();if(active==='youtube'){if(yt&&yt.getPlayerState()===YT.PlayerState.PLAYING)yt.pauseVideo();else yt&&yt.playVideo()}else if(video.paused)video.play().catch(()=>{});else video.pause()}});
+loadCatalog();
 </script>
-</body>
-</html>
+<script src="https://www.youtube.com/iframe_api"></script>
+</body></html>
