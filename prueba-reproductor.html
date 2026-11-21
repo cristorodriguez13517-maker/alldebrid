@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SHARKTV · Prueba de reproductor</title>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#000;color:#fff;font-family:Arial,sans-serif}
+body{padding:24px;max-width:1100px;margin:auto}
+h1{font-size:clamp(25px,4vw,38px);margin:0 0 8px}h1 span{color:#e50914}
+p{color:#aaa;line-height:1.5}.panel{background:#111;border:1px solid #292929;border-radius:12px;padding:18px;margin:18px 0}
+select,button{font:inherit;border-radius:8px;padding:12px 14px}
+select{width:100%;background:#080808;color:#fff;border:1px solid #444;margin:8px 0 12px}
+button{background:#e50914;color:#fff;border:0;font-weight:bold;cursor:pointer;margin:4px 6px 4px 0}
+button:disabled{opacity:.5;cursor:wait}
+video{display:block;width:100%;max-height:68vh;background:#050505;border-radius:10px}
+#status{min-height:24px;color:#ddd;font-size:14px;overflow-wrap:anywhere}
+small{color:#888}.ok{color:#67d391!important}.bad{color:#ff7777!important}
+</style>
+</head>
+<body>
+<h1><span>SHARK</span>TV · Prueba de reproductor</h1>
+<p>Prueba aislada del reproductor HTML5 con un enlace generado por el Worker AllDebrid actual. No cambia la página principal ni el Worker.</p>
+<section class="panel">
+<label for="title">Elige una película AllDebrid</label>
+<select id="title"><option>Cargando catálogo…</option></select>
+<button id="start">Preparar reproducción</button>
+<div id="status" role="status">Cargando catálogo…</div>
+</section>
+<section class="panel">
+<video id="video" controls playsinline preload="metadata"></video>
+<p id="result"><small>Al cargar el vídeo veremos si el navegador reconoce el formato MKV y puede reproducirlo.</small></p>
+</section>
+<script>
+'use strict';
+const WORKER_URL='https://alldebrid-vlc.cristorodriguez13517.workers.dev/';
+const TURNSTILE_SITE_KEY='0x4AAAAAAGK-CFVW1ivlcFRe';
+const select=document.getElementById('title');
+const status=document.getElementById('status');
+const resultText=document.getElementById('result');
+const video=document.getElementById('video');
+const start=document.getElementById('start');
+let widgetId=null,resolveToken=null,rejectToken=null,items=[];
+function setStatus(message,kind=''){status.textContent=message;status.className=kind;}
+async function getToken(){
+ const until=Date.now()+15000;
+ while(!window.turnstile&&Date.now()<until) await new Promise(r=>setTimeout(r,100));
+ if(!window.turnstile) throw new Error('No se pudo cargar Turnstile.');
+ if(widgetId===null){
+  widgetId=window.turnstile.render(document.body,{
+   sitekey:TURNSTILE_SITE_KEY,action:'reproducir',execution:'execute',size:'invisible',appearance:'interaction-only',
+   callback:t=>{if(resolveToken){const r=resolveToken;resolveToken=null;rejectToken=null;r(t);}},
+   'error-callback':c=>{if(rejectToken){const r=rejectToken;resolveToken=null;rejectToken=null;r(new Error('Error Turnstile '+c));}},
+   'timeout-callback':()=>{if(rejectToken){const r=rejectToken;resolveToken=null;rejectToken=null;r(new Error('Tiempo de verificación agotado'));}},
+   'expired-callback':()=>{if(rejectToken){const r=rejectToken;resolveToken=null;rejectToken=null;r(new Error('Verificación caducada'));}}
+  });
+ }
+ return new Promise((resolve,reject)=>{
+  resolveToken=resolve;rejectToken=reject;
+  window.turnstile.reset(widgetId);window.turnstile.execute(widgetId);
+  setTimeout(()=>{if(rejectToken===reject){resolveToken=null;rejectToken=null;reject(new Error('La verificación está tardando demasiado'));}},30000);
+ });
+}
+async function load(){
+ try{
+  const response=await fetch('./peliculas.json',{cache:'no-store'});
+  if(!response.ok) throw new Error('No se pudo cargar peliculas.json');
+  const data=await response.json();
+  items=data.filter(x=>x&&/^\d+$/.test(String(x.magnet_id||''))&&x.file_path);
+  select.innerHTML='';
+  items.slice(0,100).forEach((item,i)=>{
+   const option=document.createElement('option');option.value=String(i);
+   option.textContent=(item.title||'Película')+' · '+(item.quality||'calidad no indicada')+' · '+(item.file_path.split('.').pop()||'');
+   select.appendChild(option);
+  });
+  setStatus(items.length+' archivos AllDebrid disponibles. Selecciona uno y pulsa Preparar reproducción.');
+ }catch(e){setStatus(e.message,'bad');}
+}
+start.addEventListener('click',async()=>{
+ const item=items[Number(select.value)];
+ if(!item)return;
+ start.disabled=true;video.pause();video.removeAttribute('src');video.load();
+ resultText.textContent='Esperando metadatos del vídeo…';
+ try{
+  setStatus('Verificando seguridad y solicitando enlace al Worker…');
+  const token=await getToken();
+  const response=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo:'movie',magnet_id:String(item.magnet_id),file_path:String(item.file_path),token})});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok||!data.url)throw new Error(data.error||'El Worker no devolvió un enlace reproducible.');
+  video.src=data.url;video.load();
+  setStatus('Enlace recibido. Comprueba si aparece imagen y sonido.','ok');
+  try{await video.play();}catch(e){setStatus('Enlace recibido. Pulsa ▶ en el vídeo para probarlo.','ok');}
+ }catch(e){setStatus(e.message||'No se pudo iniciar la prueba.','bad');}
+ finally{start.disabled=false;if(window.turnstile&&widgetId!==null)window.turnstile.reset(widgetId);}
+});
+video.addEventListener('loadedmetadata',()=>{resultText.textContent='El navegador ha reconocido el vídeo. Duración: '+(Number.isFinite(video.duration)?Math.round(video.duration/60)+' minutos':'no disponible')+'.';resultText.className='ok';});
+video.addEventListener('canplay',()=>{setStatus('El navegador puede reproducir este archivo. ¡Prueba superada!','ok');});
+video.addEventListener('error',()=>{
+ const e=video.error;const messages={1:'Carga cancelada.',2:'Error de red o de acceso al enlace.',3:'El navegador no puede decodificar el formato o códec.',4:'Formato o fuente no compatible con este navegador.'};
+ const message=e?(messages[e.code]||('Error de vídeo '+e.code)): 'Error de reproducción.';
+ resultText.textContent=message+' (Código '+(e?e.code:'desconocido')+').';
+ resultText.className='bad';setStatus('El enlace se obtuvo, pero el reproductor del navegador no pudo reproducirlo.','bad');
+});
+load();
+</script>
+</body>
+</html>
