@@ -428,7 +428,7 @@ document.addEventListener('visibilitychange',()=>{
         iniciarPreparacionTurnstile();
     }
 });
-// Renueva el token antes de que se acerque a su caducidad (Turnstile: ventana corta).
+// Renueva el token antes de que se acerque a su caducidad.
 setInterval(()=>{
     if(document.hidden) return;
     if(tokenTurnstileCache && Date.now()-tokenTurnstileAt >= TOKEN_TURNSTILE_RENEW_AFTER){
@@ -437,7 +437,7 @@ setInterval(()=>{
     }
     if(!tokenTurnstileCache && !tokenTurnstilePromise) precalentarTokenTurnstile();
 },30000);
-// Si la página acaba de abrir y Turnstile aún se está inicializando, se reintenta.
+// Reintenta si Turnstile aún estaba inicializándose al cargar.
 setTimeout(()=>{if(!tokenTurnstileCache && !tokenTurnstilePromise) precalentarTokenTurnstile();},1800);
 
 async function reproducirConWorker(tipo,registro){
@@ -468,6 +468,7 @@ async function reproducirConWorker(tipo,registro){
         alert(error.message||'No se pudo iniciar la reproducción.');
         reproduccionEnCurso=false;
     }finally{
+        reproduccionEnCurso=false;
         statusElement.hidden = true;
         if(window.turnstile&&turnstileWidgetId!==null){
             window.turnstile.reset(turnstileWidgetId);
