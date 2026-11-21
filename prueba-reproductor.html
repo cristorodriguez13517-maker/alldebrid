@@ -14,10 +14,11 @@ select,input{background:#080808;color:#fff;border:1px solid #444}
 select{min-width:170px;flex:1}input[type=text]{min-width:220px;flex:1}
 button{background:#292929;color:#fff;border:1px solid #444;font-weight:bold;cursor:pointer}
 button.primary{background:#e50914;border-color:#e50914}button:disabled{opacity:.5;cursor:wait}
-#stage{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden}
-#video{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
-#yt-player{display:none;position:relative;width:100%;height:100%;min-height:0;background:#000;z-index:2}#yt-player iframe{display:block;width:100%;height:100%;border:0}#stage.youtube-mode #yt-player{display:block}
-#stage:fullscreen{width:100vw;height:100vh;aspect-ratio:auto;border-radius:0}#stage:fullscreen #yt-player{width:100%;height:100%}.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+#media-container{width:100%}
+video{display:block;width:100%;max-height:68vh;height:auto;background:#050505;border-radius:10px}
+#stage{display:none;position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden}
+#yt-player{display:block;position:absolute;inset:0;width:100%;height:100%;min-height:0;background:#000}#yt-player iframe{display:block;width:100%;height:100%;border:0}
+#media-container:fullscreen{width:100vw;height:100vh;background:#000;display:flex;align-items:center;justify-content:center}#media-container:fullscreen video{width:100%;height:100%;max-height:100%;object-fit:contain;border-radius:0}#media-container:fullscreen #stage{width:100%;height:100%;aspect-ratio:auto;border-radius:0}#media-container:fullscreen #yt-player{width:100%;height:100%}.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
 #seek{flex:1;min-width:150px;padding:0;accent-color:#e50914}.time{font-size:13px;color:#ddd;font-variant-numeric:tabular-nums}
 #status{min-height:24px;color:#ddd;font-size:14px;overflow-wrap:anywhere}.ok{color:#67d391!important}.bad{color:#ff7777!important}
 small{color:#888}.hint{font-size:13px;color:#999}
@@ -42,7 +43,7 @@ small{color:#888}.hint{font-size:13px;color:#999}
 <div id="status" role="status">Cargando catálogo AllDebrid y reproductor de YouTube…</div>
 </section>
 <section class="panel">
-<div id="stage"><video id="video" controls playsinline preload="metadata"></video><div id="yt-player" title="Reproductor oficial de YouTube"></div></div>
+<div id="media-container"><video id="video" controls playsinline preload="metadata"></video><div id="stage"><div id="yt-player" title="Reproductor oficial de YouTube"></div></div></div>
 <div class="controls">
 <button class="primary" id="play">▶ Reproducir</button><button id="pause">Ⅱ Pausar</button>
 <button id="back">−10 s</button><button id="forward">+10 s</button>
@@ -62,7 +63,7 @@ function setStatus(m,k=''){ $('status').textContent=m;$('status').className=k; }
 function fmt(n){n=Math.max(0,Math.floor(n||0));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')}
 function parseYouTubeId(raw){const s=raw.trim();if(/^[a-zA-Z0-9_-]{11}$/.test(s))return s;try{const u=new URL(s);if(u.hostname==='youtu.be')return u.pathname.split('/').filter(Boolean)[0]||null;if(u.hostname.endsWith('youtube.com'))return u.searchParams.get('v')||u.pathname.split('/').filter(Boolean).pop()||null}catch(e){}return null}
 function updateClock(t,d){duration=d||0;if(!$('seek').matches(':active')&&!seeking)$('seek').value=duration?Math.round((t/duration)*1000):0;$('clock').textContent=fmt(t)+' / '+fmt(duration)}
-function showMode(mode){active=mode;const isYT=mode==='youtube';$('stage').classList.toggle('youtube-mode',isYT);$('ad-controls').style.display=isYT?'none':'block';$('yt-controls').style.display=isYT?'block':'none';video.style.display=isYT?'none':'block';if(!isYT){if(ytReady&&yt)yt.stopVideo();ytReady=false;clearInterval(tick)}['play','pause','back','forward','seek','clock'].forEach(id=>$(id).style.display='');$('fullscreen').style.display='';$('seek').value=0;$('clock').textContent='0:00 / 0:00';}
+function showMode(mode){active=mode;const isYT=mode==='youtube';$('stage').style.display=isYT?'block':'none';$('ad-controls').style.display=isYT?'none':'block';$('yt-controls').style.display=isYT?'block':'none';video.style.display=isYT?'none':'block';if(!isYT){if(ytReady&&yt)yt.stopVideo();ytReady=false;clearInterval(tick)}['play','pause','back','forward','seek','clock'].forEach(id=>$(id).style.display='');$('fullscreen').style.display='';$('seek').value=0;$('clock').textContent='0:00 / 0:00';}
 $('source').addEventListener('change',e=>{showMode(e.target.value);setStatus(e.target.value==='youtube'?'Introduce un enlace o ID de YouTube y pulsa Cargar vídeo.':'Selecciona un archivo AllDebrid y pulsa Preparar reproducción.');});
 async function getToken(){
  const until=Date.now()+15000;while(!window.turnstile&&Date.now()<until)await new Promise(r=>setTimeout(r,100));
@@ -90,7 +91,7 @@ $('pause').onclick=()=>active==='youtube'?ytCommand('pauseVideo'):video.pause();
 function seekBy(delta){if(active==='youtube'){if(!ytReady||!yt)return;try{const now=Number(yt.getCurrentTime())||0;const total=Number(yt.getDuration())||0;const target=Math.max(0,total?Math.min(total,now+delta):now+delta);yt.seekTo(target,true);ytCurrent=target;updateClock(target,total);setStatus('Saltando a '+fmt(target)+'…','ok')}catch(e){setStatus('YouTube aún no permite saltar en este momento.','bad')}return}if(Number.isFinite(video.duration))video.currentTime=Math.max(0,Math.min(video.duration,video.currentTime+delta))}
 $('back').onclick=()=>seekBy(-10);$('forward').onclick=()=>seekBy(10);
 $('seek').oninput=()=>{seeking=true;if(active==='youtube'&&duration>0){const target=Number($('seek').value)/1000*duration;$('clock').textContent=fmt(target)+' / '+fmt(duration)}};$('seek').onchange=e=>{const f=Number(e.target.value)/1000;if(active==='youtube'&&ytReady&&yt){const total=Number(yt.getDuration())||duration;const target=f*total;yt.seekTo(target,true);ytCurrent=target;updateClock(target,total)}else if(Number.isFinite(video.duration))video.currentTime=f*video.duration;seeking=false};
-$('fullscreen').onclick=()=>{const el=$('stage');if(el.requestFullscreen)el.requestFullscreen()};
+$('fullscreen').onclick=()=>{const el=$('media-container');if(el.requestFullscreen)el.requestFullscreen()};
 video.addEventListener('loadedmetadata',()=>{$('result').textContent='Vídeo reconocido. Duración: '+(Number.isFinite(video.duration)?fmt(video.duration):'no disponible')+'.';$('result').className='ok';updateClock(0,video.duration)});
 video.addEventListener('timeupdate',()=>updateClock(video.currentTime,video.duration));
 video.addEventListener('canplay',()=>setStatus('AllDebrid: el navegador puede reproducir este archivo. ¡Prueba superada!','ok'));
