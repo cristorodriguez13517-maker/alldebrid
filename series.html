@@ -122,9 +122,11 @@ async function obtenerTokenTurnstile(){
     }
     if(turnstileWidgetId===null){
         turnstileWidgetId=window.turnstile.render(host,{
-            sitekey:TURNSTILE_SITE_KEY,action:'reproducir',execution:'execute',appearance:'interaction-only',
+            sitekey:TURNSTILE_SITE_KEY,action:'reproducir',execution:'execute',appearance:'always',
             callback:token=>{if(turnstileResolve){const done=turnstileResolve;turnstileResolve=null;turnstileReject=null;done(token);}},
-            'error-callback':()=>{if(turnstileReject){const fail=turnstileReject;turnstileResolve=null;turnstileReject=null;fail(new Error('Falló la verificación anti-bots. Vuelve a intentarlo.'));}},
+            'error-callback':code=>{console.error('Turnstile error:',code);if(turnstileReject){const fail=turnstileReject;turnstileResolve=null;turnstileReject=null;fail(new Error('Cloudflare Turnstile: error '+(code||'desconocido')+'. Revisa la Site Key y el dominio autorizado.'));}},
+            'unsupported-callback':()=>{if(turnstileReject){const fail=turnstileReject;turnstileResolve=null;turnstileReject=null;fail(new Error('Este navegador no es compatible con la verificación de Cloudflare.'));}},
+            'timeout-callback':()=>{if(turnstileReject){const fail=turnstileReject;turnstileResolve=null;turnstileReject=null;fail(new Error('Cloudflare agotó el tiempo de verificación.'));}},
             'expired-callback':()=>{if(turnstileReject){const fail=turnstileReject;turnstileResolve=null;turnstileReject=null;fail(new Error('La verificación caducó. Vuelve a intentarlo.'));}}
         });
     }
