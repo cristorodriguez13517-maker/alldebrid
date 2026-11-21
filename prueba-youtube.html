@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SHARKTV · Prueba YouTube</title>
+<style>
+:root{color-scheme:dark;--red:#e50914;--panel:#171717;--muted:#aaa}
+*{box-sizing:border-box}body{margin:0;background:#080808;color:#fff;font-family:Arial,sans-serif;min-height:100vh}
+header{padding:18px 22px;border-bottom:1px solid #292929;display:flex;align-items:center;gap:12px}
+.logo{font-weight:900;letter-spacing:1.5px;font-size:22px}.logo span{color:var(--red)}
+main{max-width:1050px;margin:24px auto;padding:0 18px}
+h1{font-size:clamp(21px,3vw,30px);margin:0 0 8px}.sub{color:var(--muted);margin:0 0 18px}
+.player-shell{background:#000;border:1px solid #333;border-radius:12px;overflow:hidden;box-shadow:0 12px 40px #0008}
+#player{width:100%;aspect-ratio:16/9;min-height:220px}#player iframe{width:100%;height:100%}
+.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px;background:#111}
+button{background:#242424;border:1px solid #444;color:white;border-radius:7px;padding:11px 15px;font-size:15px;cursor:pointer}
+button:focus{outline:3px solid var(--red);outline-offset:2px}button.primary{background:var(--red);border-color:var(--red)}
+#seek{flex:1;min-width:160px;accent-color:var(--red)}.time{font-variant-numeric:tabular-nums;color:#ddd;font-size:13px}
+.status{margin-top:16px;padding:14px 16px;border-radius:9px;background:var(--panel);border-left:4px solid #777;line-height:1.45}
+.status.ok{border-color:#27ae60}.status.bad{border-color:var(--red)}.status.warn{border-color:#e0a526}
+.small{color:var(--muted);font-size:13px;margin-top:12px;line-height:1.5}
+a{color:#ff6269}
+</style>
+</head>
+<body>
+<header><div class="logo">SHARK<span>TV</span></div><div>Prueba técnica · YouTube</div></header>
+<main>
+<h1>El dragón de papá (2022)</h1>
+<p class="sub">Prueba del reproductor oficial de YouTube con el enlace utilizado por el catálogo.</p>
+<div class="player-shell">
+  <div id="player"></div>
+  <div class="controls">
+    <button class="primary" id="play">▶ Reproducir</button>
+    <button id="pause">Ⅱ Pausar</button>
+    <button id="back">−10 s</button>
+    <button id="forward">+10 s</button>
+    <input id="seek" type="range" min="0" max="1000" value="0" aria-label="Progreso">
+    <span class="time" id="clock">0:00 / 0:00</span>
+    <button id="fullscreen">⛶ Pantalla completa</button>
+  </div>
+</div>
+<div id="status" class="status">Cargando el reproductor oficial de YouTube…</div>
+<p class="small">Vídeo de prueba: <a href="https://youtu.be/NwUZt8H3UBc" target="_blank" rel="noopener">abrir en YouTube</a> · ID: NwUZt8H3UBc<br>Esta página no solicita tu cuenta, contraseña ni cookies. Si YouTube bloquea el vídeo por derechos, edad, país o inserción, el reproductor mostrará el error correspondiente; esta prueba no intenta eludir esas restricciones.</p>
+</main>
+<script>
+let yt=null, duration=0, ticker=null, seeking=false;
+const $=id=>document.getElementById(id);
+function status(message,kind=''){ $('status').className='status '+kind; $('status').textContent=message; }
+function fmt(n){n=Math.max(0,Math.floor(n||0));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')}
+window.onYouTubeIframeAPIReady=function(){
+ yt=new YT.Player('player',{width:'100%',height:'100%',videoId:'NwUZt8H3UBc',
+  playerVars:{playsinline:1,controls:1,rel:0,enablejsapi:1},
+  events:{
+   onReady:()=>{status('Reproductor cargado. Pulsa Reproducir para comprobar si YouTube autoriza este vídeo.','ok');ticker=setInterval(update,500)},
+   onStateChange:e=>{if(e.data===YT.PlayerState.PLAYING)status('El vídeo está reproduciéndose mediante el reproductor oficial de YouTube.','ok');if(e.data===YT.PlayerState.PAUSED)status('Reproducción pausada.','ok');if(e.data===YT.PlayerState.ENDED)status('El vídeo ha terminado.','ok')},
+   onError:e=>{const messages={2:'YouTube ha rechazado un parámetro o el ID del vídeo.',5:'El reproductor HTML5 no puede reproducir el vídeo.',100:'Vídeo no disponible, eliminado o marcado como privado.',101:'El propietario o una política no permite reproducirlo en reproductores insertados.',150:'El vídeo no permite reproducción insertada.',153:'YouTube no recibió la identificación HTTP Referer requerida.'};status('YouTube ha devuelto el error '+e.data+': '+(messages[e.data]||'No se pudo reproducir. Revisa las restricciones del vídeo.'),'bad')}
+  }
+ });
+};
+function update(){if(!yt||!yt.getCurrentTime)return;try{const t=yt.getCurrentTime()||0;duration=yt.getDuration()||0;if(!$('seek').matches(':active')&&!seeking)$('seek').value=duration?Math.round(t/duration*1000):0;$('clock').textContent=fmt(t)+' / '+fmt(duration)}catch(e){}}
+$('play').onclick=()=>yt&&yt.playVideo();$('pause').onclick=()=>yt&&yt.pauseVideo();
+$('back').onclick=()=>yt&&yt.seekTo(Math.max(0,yt.getCurrentTime()-10),true);
+$('forward').onclick=()=>yt&&yt.seekTo(Math.min(yt.getDuration(),yt.getCurrentTime()+10),true);
+$('seek').oninput=()=>{seeking=true};$('seek').onchange=e=>{if(yt&&duration)yt.seekTo(Number(e.target.value)/1000*duration,true);seeking=false};
+$('fullscreen').onclick=()=>{const el=document.querySelector('.player-shell');if(el.requestFullscreen)el.requestFullscreen();else if(yt&&yt.getIframe())yt.getIframe().requestFullscreen?.()};
+document.addEventListener('keydown',e=>{if(['INPUT','BUTTON'].includes(document.activeElement.tagName))return;if(e.key===' '){e.preventDefault();if(yt&&yt.getPlayerState()===YT.PlayerState.PLAYING)yt.pauseVideo();else yt&&yt.playVideo()}if(e.key==='ArrowLeft'&&yt)yt.seekTo(Math.max(0,yt.getCurrentTime()-10),true);if(e.key==='ArrowRight'&&yt)yt.seekTo(Math.min(yt.getDuration(),yt.getCurrentTime()+10),true)});
+</script>
+<script src="https://www.youtube.com/iframe_api"></script>
+</body></html>
