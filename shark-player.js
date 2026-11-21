@@ -36,6 +36,8 @@
   document.body.style.overflow='hidden';
   video.controls=true;
   video.playsInline=true;
+  video.removeAttribute('muted');
+  video.defaultMuted=false;
   video.muted=false;
   video.volume=1;
   video.src=media.href;
@@ -43,11 +45,27 @@
   const playPromise=video.play();
   if(playPromise&&typeof playPromise.catch==='function'){
    playPromise.catch(()=>{
-    status.textContent='Pulsa reproducir en los controles para comenzar.';
+    status.textContent='Pulsa el botón Activar sonido para iniciar el vídeo con audio.';
    });
   }
  };
+ // Un gesto explícito del usuario permite a Chrome iniciar la reproducción con audio
+ video.addEventListener('click',()=>{
+  if(video.muted||video.volume===0){
+   video.removeAttribute('muted');
+   video.defaultMuted=false;
+   video.muted=false;
+   video.volume=1;
+  }
+  if(video.paused){
+   const p=video.play();
+   if(p&&p.catch)p.catch(()=>{status.textContent='No se pudo iniciar el vídeo.';});
+  }
+ });
  video.addEventListener('playing',()=>{status.textContent='';});
+ video.addEventListener('volumechange',()=>{
+  if(!video.muted&&video.volume>0)status.textContent='';
+ });
  video.addEventListener('canplay',()=>{if(video.paused)status.textContent='Pulsa reproducir para comenzar.';});
  video.addEventListener('error',()=>{
   const code=video.error&&video.error.code;
