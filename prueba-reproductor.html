@@ -57,12 +57,12 @@ small{color:#888}.hint{font-size:13px;color:#999}
 const WORKER_URL='https://alldebrid-vlc.cristorodriguez13517.workers.dev/';
 const TURNSTILE_SITE_KEY='0x4AAAAAAGK-CFVW1ivlcFRe';
 const $=id=>document.getElementById(id), video=$('video'), ytBox=$('yt-player');
-let widgetId=null,resolveToken=null,rejectToken=null,items=[],yt=null,active='alldebrid',ytReady=false,duration=0,tick=null,seeking=false;
+let widgetId=null,resolveToken=null,rejectToken=null,items=[],yt=null,active='alldebrid',ytReady=false,duration=0,tick=null,seeking=false,ytCurrent=0;
 function setStatus(m,k=''){ $('status').textContent=m;$('status').className=k; }
 function fmt(n){n=Math.max(0,Math.floor(n||0));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')}
 function parseYouTubeId(raw){const s=raw.trim();if(/^[a-zA-Z0-9_-]{11}$/.test(s))return s;try{const u=new URL(s);if(u.hostname==='youtu.be')return u.pathname.split('/').filter(Boolean)[0]||null;if(u.hostname.endsWith('youtube.com'))return u.searchParams.get('v')||u.pathname.split('/').filter(Boolean).pop()||null}catch(e){}return null}
 function updateClock(t,d){duration=d||0;if(!$('seek').matches(':active')&&!seeking)$('seek').value=duration?Math.round((t/duration)*1000):0;$('clock').textContent=fmt(t)+' / '+fmt(duration)}
-function showMode(mode){active=mode;const isYT=mode==='youtube';$('stage').classList.toggle('youtube-mode',isYT);$('ad-controls').style.display=isYT?'none':'block';$('yt-controls').style.display=isYT?'block':'none';video.style.display=isYT?'none':'block';if(!isYT)$('yt-player').src='';['play','pause','back','forward','seek','clock'].forEach(id=>$(id).style.display=isYT?'none':'');$('fullscreen').style.display='';$('seek').value=0;$('clock').textContent='0:00 / 0:00';}
+function showMode(mode){active=mode;const isYT=mode==='youtube';$('stage').classList.toggle('youtube-mode',isYT);$('ad-controls').style.display=isYT?'none':'block';$('yt-controls').style.display=isYT?'block':'none';video.style.display=isYT?'none':'block';if(!isYT){$('yt-player').src='';ytReady=false;clearInterval(tick)}['play','pause','back','forward','seek','clock'].forEach(id=>$(id).style.display='');$('fullscreen').style.display='';$('seek').value=0;$('clock').textContent='0:00 / 0:00';}
 $('source').addEventListener('change',e=>{showMode(e.target.value);setStatus(e.target.value==='youtube'?'Introduce un enlace o ID de YouTube y pulsa Cargar vídeo.':'Selecciona un archivo AllDebrid y pulsa Preparar reproducción.');});
 async function getToken(){
  const until=Date.now()+15000;while(!window.turnstile&&Date.now()<until)await new Promise(r=>setTimeout(r,100));
@@ -77,16 +77,19 @@ async function getToken(){
 async function loadCatalog(){try{const r=await fetch('./peliculas.json',{cache:'no-store'});if(!r.ok)throw new Error('No se pudo cargar peliculas.json');const data=await r.json();items=data.filter(x=>x&&/^\d+$/.test(String(x.magnet_id||''))&&x.file_path);$('title').innerHTML='';items.slice(0,100).forEach((item,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=(item.title||'Película')+' · '+(item.quality||'calidad no indicada');$('title').appendChild(o)});setStatus(items.length+' archivos AllDebrid disponibles. También puedes seleccionar YouTube.')}catch(e){setStatus(e.message,'bad')}}
 $('start-ad').onclick=async()=>{
  const item=items[Number($('title').value)];if(!item)return;
- $('start-ad').disabled=true;video.pause();video.removeAttribute('src');video.load();$('yt-player').src='';
+ $('start-ad').disabled=true;video.pause();video.removeAttribute('src');video.load();$('yt-player').src='';ytReady=false;clearInterval(tick);
  $('result').textContent='Solicitando enlace de reproducción AllDebrid…';
  try{setStatus('Verificando seguridad y solicitando enlace al Worker…');const token=await getToken();const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo:'movie',magnet_id:String(item.magnet_id),file_path:String(item.file_path),token})});const data=await r.json().catch(()=>({}));if(!r.ok||!data.url)throw new Error(data.error||'El Worker no devolvió un enlace reproducible.');video.src=data.url;video.load();setStatus('Enlace recibido. Comprueba imagen y sonido.','ok');try{await video.play()}catch(e){setStatus('Enlace recibido. Pulsa Reproducir.','ok')}}catch(e){setStatus(e.message||'No se pudo iniciar la prueba.','bad')}finally{$('start-ad').disabled=false;if(window.turnstile&&widgetId!==null)window.turnstile.reset(widgetId)}
 };
-$('start-yt').onclick=()=>{const id=parseYouTubeId($('yt-id').value);if(!id||id.length!==11){setStatus('No reconozco el enlace o ID de YouTube.','bad');return}video.pause();video.removeAttribute('src');video.load();$('yt-player').src='https://www.youtube.com/embed/'+encodeURIComponent(id)+'?autoplay=1&playsinline=1&controls=1&rel=0';$('result').textContent='Reproduciendo con el reproductor oficial incrustado de YouTube.';$('result').className='ok';setStatus('Vídeo cargado en el reproductor oficial de YouTube. Usa sus propios controles.','ok');};
-$('play').onclick=()=>active==='youtube'?null:video.play().catch(()=>{});
-$('pause').onclick=()=>active==='youtube'?null:video.pause();
-function seekBy(delta){if(active==='youtube')return;else if(Number.isFinite(video.duration)){video.currentTime=Math.max(0,Math.min(video.duration,video.currentTime+delta))}}
+function ytCommand(func,args=[]){if(!ytReady||!ytBox.contentWindow)return;ytBox.contentWindow.postMessage(JSON.stringify({event:'command',func,args}), 'https://www.youtube.com');}
+function updateYTInfo(info){if(!info)return;if(Number.isFinite(info.currentTime))ytCurrent=info.currentTime;if(Number.isFinite(info.duration))duration=info.duration;if(active==='youtube')updateClock(ytCurrent,duration);}
+window.addEventListener('message',e=>{if(e.origin!=='https://www.youtube.com'&&e.origin!=='https://www.youtube-nocookie.com')return;let data;try{data=typeof e.data==='string'?JSON.parse(e.data):e.data}catch(_){return}if(data&&data.event==='infoDelivery')updateYTInfo(data.info);});
+$('start-yt').onclick=()=>{const id=parseYouTubeId($('yt-id').value);if(!id||id.length!==11){setStatus('No reconozco el enlace o ID de YouTube.','bad');return}video.pause();video.removeAttribute('src');video.load();ytReady=false;clearInterval(tick);duration=0;ytCurrent=0;ytBox.onload=()=>{ytReady=true;ytCommand('addEventListener',['infoDelivery']);ytCommand('playVideo');tick=setInterval(()=>{ytCommand('getCurrentTime');ytCommand('getDuration')},1000);};ytBox.src='https://www.youtube.com/embed/'+encodeURIComponent(id)+'?autoplay=1&playsinline=1&controls=0&rel=0&enablejsapi=1&origin='+encodeURIComponent(location.origin);$('result').textContent='YouTube se reproduce con los controles de SHARKTV.';$('result').className='ok';setStatus('Vídeo cargado. Usa los controles de SHARKTV.','ok');};
+$('play').onclick=()=>active==='youtube'?ytCommand('playVideo'):video.play().catch(()=>{});
+$('pause').onclick=()=>active==='youtube'?ytCommand('pauseVideo'):video.pause();
+function seekBy(delta){if(active==='youtube'){ytCommand('seekTo',[Math.max(0,ytCurrent+delta),true]);return}if(Number.isFinite(video.duration))video.currentTime=Math.max(0,Math.min(video.duration,video.currentTime+delta))}
 $('back').onclick=()=>seekBy(-10);$('forward').onclick=()=>seekBy(10);
-$('seek').oninput=()=>seeking=true;$('seek').onchange=e=>{const f=Number(e.target.value)/1000;if(active!=='youtube'&&Number.isFinite(video.duration))video.currentTime=f*video.duration;seeking=false};
+$('seek').oninput=()=>seeking=true;$('seek').onchange=e=>{const f=Number(e.target.value)/1000;if(active==='youtube'&&duration>0)ytCommand('seekTo',[f*duration,true]);else if(Number.isFinite(video.duration))video.currentTime=f*video.duration;seeking=false};
 $('fullscreen').onclick=()=>{const el=$('stage');if(el.requestFullscreen)el.requestFullscreen()};
 video.addEventListener('loadedmetadata',()=>{$('result').textContent='Vídeo reconocido. Duración: '+(Number.isFinite(video.duration)?fmt(video.duration):'no disponible')+'.';$('result').className='ok';updateClock(0,video.duration)});
 video.addEventListener('timeupdate',()=>updateClock(video.currentTime,video.duration));
@@ -94,7 +97,7 @@ video.addEventListener('canplay',()=>setStatus('AllDebrid: el navegador puede re
 video.addEventListener('error',()=>{const e=video.error;const m={1:'Carga cancelada.',2:'Error de red o acceso al enlace.',3:'El navegador no puede decodificar el formato o códec.',4:'Formato o fuente no compatible.'};$('result').textContent=(m[e?.code]||'Error de reproducción')+' Código '+(e?.code||'?')+'.';$('result').className='bad';setStatus('El enlace se obtuvo, pero el navegador no pudo reproducirlo.','bad')});
 
 
-document.addEventListener('keydown',e=>{if(active==='youtube')return;if(['INPUT','SELECT','BUTTON'].includes(document.activeElement.tagName))return;if(e.key==='ArrowLeft'){e.preventDefault();seekBy(-10)}if(e.key==='ArrowRight'){e.preventDefault();seekBy(10)}if(e.key===' '){e.preventDefault();if(video.paused)video.play().catch(()=>{});else video.pause()}});
+document.addEventListener('keydown',e=>{if(['INPUT','SELECT','BUTTON'].includes(document.activeElement.tagName))return;if(e.key==='ArrowLeft'){e.preventDefault();seekBy(-10)}if(e.key==='ArrowRight'){e.preventDefault();seekBy(10)}if(e.key===' '){e.preventDefault();if(active==='youtube')ytCommand('playVideo');else if(video.paused)video.play().catch(()=>{});else video.pause()}});
 loadCatalog();
 </script>
 
