@@ -1,5 +1,23 @@
 [
   {
+    "id": 308007,
+    "tmdb_id": 308007,
+    "title": "Los altruistas",
+    "poster": "https://image.tmdb.org/t/p/w780/iRFLTlydFocAEWN2yIoBWGTXyFe.jpg",
+    "backdrop": "https://image.tmdb.org/t/p/original/m8JTMj7jDMJFZAPP1ASmSi4gMWi.jpg",
+    "logo": "https://image.tmdb.org/t/p/w780/7BCVDv3HYjI4BLI3yNv2sPHONUy.png",
+    "overview": "Jóvenes, idealistas y, de repente, multimillonarios. Intentaron hacer el bien, pero sacaron lo peor el uno del otro. Una historia de amor tóxico inspirada en un fraude real.",
+    "first_air_date": "2026-11-19",
+    "genres": [
+      "Crimen",
+      "Drama"
+    ],
+    "age_rating": "12+",
+    "number_of_seasons": 1,
+    "quality": "",
+    "added_at": "2026-11-20T21:30:17+00:00"
+  },
+  {
     "id": 82728,
     "tmdb_id": 82728,
     "title": "Bluey",

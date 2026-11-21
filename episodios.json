@@ -1009,5 +1009,73 @@
       "quality": "FHD",
       "added_at": "2026-11-07T01:16:10+00:00"
     }
+  ],
+  "308007": [
+    {
+      "numero": 1,
+      "temporada": 1,
+      "titulo": "Relaciones inadecuadas",
+      "sinopsis": "Años antes del fraude, de las mentiras y del encubrimiento, Sam y Caroline se conocen en Nueva York. Su historia de amor se intensifica... y sus ganas de arriesgarlo todo, también.",
+      "imagen": "https://image.tmdb.org/t/p/w500/iVtpQJrBmgItUN5fI1xWuGD3pad.jpg",
+      "magnet_id": "864715268",
+      "file_path": "the.altruists.s01e01.1080p.web.h264-cakes[EZTVx.to].mkv",
+      "quality": "FHD",
+      "added_at": "2026-11-20T21:30:17+00:00"
+    },
+    {
+      "numero": 2,
+      "temporada": 1,
+      "titulo": "Siete versiones de la verdad",
+      "sinopsis": "Las cuentas están claras: Sam y Caroline deben ponerse de acuerdo en cuál debe ser su prioridad. Una despedida de soltera plantea dudas sobre el pasado y sobre el balance de FTX.",
+      "imagen": "https://image.tmdb.org/t/p/w500/soiTN6LSGH7kDZdP6E2knJLAjTL.jpg",
+      "magnet_id": "864715310",
+      "file_path": "www.UIndex.org    -    The.Altruists.S01E02.1080p.WEB.H264-CAKES/the.altruists.s01e02.1080p.web.h264-cakes.mkv",
+      "quality": "FHD",
+      "added_at": "2026-11-20T21:29:15+00:00"
+    },
+    {
+      "numero": 4,
+      "temporada": 1,
+      "titulo": "Los buenos",
+      "sinopsis": "Sam intenta que su ídolo lo respalde y FTX debe elegir entre la ética y la supervivencia. En 2022, una periodista pone a Caroline en el punto de mira de su investigación.",
+      "imagen": "https://image.tmdb.org/t/p/w500/cbkNq6GZ4vNdbR8eYrmzt94gOrt.jpg",
+      "magnet_id": "864715838",
+      "file_path": "the.altruists.s01e04.1080p.web.h264-cakes[EZTVx.to].mkv",
+      "quality": "FHD",
+      "added_at": "2026-11-20T21:29:20+00:00"
+    },
+    {
+      "numero": 5,
+      "temporada": 1,
+      "titulo": "Noches de juegos",
+      "sinopsis": "Sam y Caroline se preguntan si cruzar el límite estaría tan mal. Nishad sopesa sus opciones en las Bahamas y otra jugadora urde una jugada de ajedrez muy peligrosa.",
+      "imagen": "https://image.tmdb.org/t/p/w500/r7PIHGWu9ZKaqOzjq0EIKJZw6UT.jpg",
+      "magnet_id": "864715844",
+      "file_path": "the.altruists.s01e05.1080p.web.h264-cakes[EZTVx.to].mkv",
+      "quality": "FHD",
+      "added_at": "2026-11-20T21:29:26+00:00"
+    },
+    {
+      "numero": 7,
+      "temporada": 1,
+      "titulo": "El dilema del prisionero",
+      "sinopsis": "La relación de Sam y Caroline llega a un punto de inflexión en plena crisis. Con la prensa en las Bahamas, es la hora de ponerse lógicos, pero la vida real no son matemáticas.",
+      "imagen": "https://image.tmdb.org/t/p/w500/86q5A9KbLEYKq1gqw0vY8prJtGB.jpg",
+      "magnet_id": "864715790",
+      "file_path": "www.UIndex.org    -    The.Altruists.S01E07.1080p.WEB.H264-CAKES/the.altruists.s01e07.1080p.web.h264-cakes.mkv",
+      "quality": "FHD",
+      "added_at": "2026-11-20T21:29:32+00:00"
+    },
+    {
+      "numero": 8,
+      "temporada": 1,
+      "titulo": "Modo Dios",
+      "sinopsis": "Los federales presionan al círculo íntimo de FTX entre rumores. El imperio cripto se derrumba, pero falta responder a la pregunta de los 8000 millones: ¿quién irá a prisión?",
+      "imagen": "https://image.tmdb.org/t/p/w500/s3VeRr2ZOQNTABqxMotR0caZMR3.jpg",
+      "magnet_id": "864715772",
+      "file_path": "the.altruists.s01e08.1080p.web.h264-cakes[EZTVx.to].mkv",
+      "quality": "FHD",
+      "added_at": "2026-11-20T21:29:38+00:00"
+    }
   ]
 }
