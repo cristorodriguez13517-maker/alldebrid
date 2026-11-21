@@ -42,7 +42,7 @@ small{color:#888}.hint{font-size:13px;color:#999}
 <div id="status" role="status">Cargando catálogo AllDebrid y reproductor de YouTube…</div>
 </section>
 <section class="panel">
-<div id="stage"><video id="video" playsinline preload="metadata"></video><div id="yt-player" title="Reproductor oficial de YouTube"></div></div>
+<div id="stage"><video id="video" controls playsinline preload="metadata"></video><div id="yt-player" title="Reproductor oficial de YouTube"></div></div>
 <div class="controls">
 <button class="primary" id="play">▶ Reproducir</button><button id="pause">Ⅱ Pausar</button>
 <button id="back">−10 s</button><button id="forward">+10 s</button>
@@ -77,9 +77,9 @@ async function getToken(){
 async function loadCatalog(){try{const r=await fetch('./peliculas.json',{cache:'no-store'});if(!r.ok)throw new Error('No se pudo cargar peliculas.json');const data=await r.json();items=data.filter(x=>x&&/^\d+$/.test(String(x.magnet_id||''))&&x.file_path);$('title').innerHTML='';items.slice(0,100).forEach((item,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=(item.title||'Película')+' · '+(item.quality||'calidad no indicada');$('title').appendChild(o)});setStatus(items.length+' archivos AllDebrid disponibles. También puedes seleccionar YouTube.')}catch(e){setStatus(e.message,'bad')}}
 $('start-ad').onclick=async()=>{
  const item=items[Number($('title').value)];if(!item)return;
- $('start-ad').disabled=true;video.pause();video.removeAttribute('src');video.load();$('yt-player').src='';ytReady=false;clearInterval(tick);
+ $('start-ad').disabled=true;video.pause();video.muted=false;video.volume=1;video.removeAttribute('src');video.load();$('yt-player').src='';ytReady=false;clearInterval(tick);
  $('result').textContent='Solicitando enlace de reproducción AllDebrid…';
- try{setStatus('Verificando seguridad y solicitando enlace al Worker…');const token=await getToken();const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo:'movie',magnet_id:String(item.magnet_id),file_path:String(item.file_path),token})});const data=await r.json().catch(()=>({}));if(!r.ok||!data.url)throw new Error(data.error||'El Worker no devolvió un enlace reproducible.');video.src=data.url;video.load();setStatus('Enlace recibido. Comprueba imagen y sonido.','ok');try{await video.play()}catch(e){setStatus('Enlace recibido. Pulsa Reproducir.','ok')}}catch(e){setStatus(e.message||'No se pudo iniciar la prueba.','bad')}finally{$('start-ad').disabled=false;if(window.turnstile&&widgetId!==null)window.turnstile.reset(widgetId)}
+ try{setStatus('Verificando seguridad y solicitando enlace al Worker…');const token=await getToken();const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo:'movie',magnet_id:String(item.magnet_id),file_path:String(item.file_path),token})});const data=await r.json().catch(()=>({}));if(!r.ok||!data.url)throw new Error(data.error||'El Worker no devolvió un enlace reproducible.');video.src=data.url;video.load();setStatus('Enlace recibido. Comprueba imagen y sonido.','ok');try{await video.play()}catch(e){setStatus('Enlace recibido. Pulsa Reproducir en el vídeo.','ok')}}catch(e){setStatus(e.message||'No se pudo iniciar la prueba.','bad')}finally{$('start-ad').disabled=false;if(window.turnstile&&widgetId!==null)window.turnstile.reset(widgetId)}
 };
 function ytCommand(func,args=[]){if(!ytReady||!yt)return;try{if(func==='playVideo')yt.playVideo();else if(func==='pauseVideo')yt.pauseVideo();else if(func==='seekTo')yt.seekTo(args[0],args[1]!==false);}catch(e){setStatus('YouTube todavía está preparando los controles.','bad')}}
 function updateYTInfo(){if(!ytReady||!yt)return;try{ytCurrent=yt.getCurrentTime()||0;duration=yt.getDuration()||0;if(active==='youtube')updateClock(ytCurrent,duration)}catch(e){}}
