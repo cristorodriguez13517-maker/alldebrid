@@ -102,6 +102,92 @@ outline:none!important;box-shadow:none!important
   .movie-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 }
 
+
+/* CABECERA EN SU PROPIO ESPACIO Y FONDO DE RESPALDO */
+.header{
+  position:relative!important;
+  top:auto!important;
+  left:auto!important;
+  right:auto!important;
+  width:100%;
+  height:320px!important;
+  min-height:320px;
+  box-sizing:border-box;
+  flex-shrink:0;
+  background-position:center center!important;
+  background-size:cover!important;
+  background-repeat:no-repeat!important;
+}
+.content{
+  margin-top:0!important;
+  position:relative;
+  z-index:1;
+}
+.header-info{
+  width:min(560px,72%);
+  max-width:560px;
+  max-height:calc(100% - 28px);
+  overflow:hidden;
+  box-sizing:border-box;
+}
+.header-info img,
+.header h1 img{
+  display:block;
+  width:auto;
+  max-width:min(390px,68vw);
+  max-height:96px;
+  object-fit:contain;
+  object-position:left center;
+}
+.header h1{line-height:1.15;overflow-wrap:anywhere}
+.details{line-height:1.45}
+.overview{
+  max-width:520px;
+  max-height:76px;
+  overflow:auto;
+  line-height:1.4;
+}
+.header:not(.has-banner){
+  background-color:#fff!important;
+  background-image:none!important;
+}
+.header:not(.has-banner)::before,
+.header:not(.has-banner):before{
+  background:none!important;
+}
+.header:not(.has-banner) .header-info,
+.header:not(.has-banner) .header-info h1,
+.header:not(.has-banner) .header-info h2,
+.header:not(.has-banner) .header-info .details,
+.header:not(.has-banner) .header-info .overview,
+.header:not(.has-banner) #info,
+.header:not(.has-banner) #info h1,
+.header:not(.has-banner) #info .details,
+.header:not(.has-banner) #info .overview{
+  color:#171717!important;
+}
+.header:not(.has-banner) .header-info img,
+.header:not(.has-banner) h1 img{
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.45));
+}
+@media(max-width:900px){
+  .header-info{width:min(560px,82%)}
+  .header-info img,.header h1 img{max-width:min(330px,76vw);max-height:82px}
+  .overview{max-height:64px}
+}
+@media(max-width:600px){
+  .header{
+    height:280px!important;
+    min-height:280px;
+    padding:14px!important;
+  }
+  .header-info{width:82%;max-height:calc(100% - 20px)}
+  .header-info img,.header h1 img{max-width:min(260px,76vw);max-height:66px}
+  .header h1{font-size:clamp(19px,5vw,23px)}
+  .details{font-size:12px}
+  .overview{font-size:11px;max-height:54px}
+}
+
 </style>
 </head>
 
@@ -778,6 +864,7 @@ async function loadSeriesDetail(){
         header.style.backgroundImage=backdropOf(serie)
             ?'url("'+backdropOf(serie)+'")'
             :'none';
+        header.classList.toggle('has-banner',!!backdropOf(serie));
 
         headerInfo.replaceChildren();
 
