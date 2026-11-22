@@ -649,11 +649,11 @@ function renderSeries(){
 function selectSeries(card){
     if(!card||card.hidden)return;
 
-    selectedSeries=card;
+    if(selectedSeries===card)return;
 
-    document.querySelectorAll('.movie').forEach(x=>{
-        x.classList.toggle('selected',x===card);
-    });
+    if(selectedSeries)selectedSeries.classList.remove('selected');
+    selectedSeries=card;
+    card.classList.add('selected');
 
     header.style.backgroundImage=card.dataset.banner
         ?'url("'+card.dataset.banner+'")'
@@ -706,7 +706,7 @@ function visibleSeries(){
 function gridColumns(){
     if(innerWidth<=600)return 3;
     if(innerWidth<=900)return 5;
-    return 8;
+    return 7;
 }
 
 function focusSeries(card){
@@ -715,8 +715,8 @@ function focusSeries(card){
     selectSeries(card);
 
     const r=card.getBoundingClientRect();
-    if(r.top<325)scrollBy(0,r.top-325);
-    else if(r.bottom>innerHeight-12)scrollBy(0,r.bottom-innerHeight+12);
+    if(r.top<325)scrollBy({top:r.top-325,left:0,behavior:'instant'});
+    else if(r.bottom>innerHeight-12)scrollBy({top:r.bottom-innerHeight+12,left:0,behavior:'instant'});
 }
 
 function firstSeries(){
