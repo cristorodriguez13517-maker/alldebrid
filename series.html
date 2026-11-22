@@ -203,30 +203,20 @@ setInterval(()=>{
 // Reintenta si Turnstile aún estaba inicializándose al cargar.
 setTimeout(()=>{if(!tokenTurnstileCache && !tokenTurnstilePromise) precalentarTokenTurnstile();},1800);
 
-
-/* PREPARACIÓN ANTICIPADA DEL ENLACE: solo el elemento enfocado/seleccionado */
-const enlacesDirectosPreparados=new Map();
-let colaPreparacionEnlaces=Promise.resolve();
-let temporizadorPrecarga=null;
-let clavePrecargaProgramada='';
-const EDAD_ENLACE_PREPARADO=90000;
-
-function claveEnlace(tipo,registro){
-    return String(tipo)+'|'+String(registro?.magnet_id||'')+'|'+String(registro?.file_path||'');
-}
-function limpiarTurnstileTrasPreparacion(){
-    if(window.turnstile&&turnstileWidgetId!==null)window.turnstile.reset(turnstileWidgetId);
-    setTimeout(()=>precalentarTokenTurnstile(),700);
-}
-function obtenerEnlaceDirecto(tipo,registro){
-    const key=claveEnlace(tipo,registro);
-    const actual=enlacesDirectosPreparados.get(key);
-    if(actual?.promise)return actual.promise;
-    if(actual?.url&&Date.now()-actual.creado<EDAD_ENLACE_PREPARADO)return Promise.resolve(actual.url);
-
-    const trabajo=colaPreparacionEnlaces.then(async()=>{
-        const url=await obtenerEnlaceDirecto(tipo,registro);
-        abrirVLC(url);
+async function reproducirConWorker(tipo,registro){
+    if(reproduccionEnCurso) return;
+    const magnetId=String(registro?.magnet_id||'');
+    const filePath=String(registro?.file_path||'');
+    if(!/^\d+$/.test(magnetId)||!filePath){alert('Este episodio no tiene un archivo disponible en AllDebrid.');return;}
+    statusEl.hidden=false;
+    statusEl.textContent='Verificando seguridad y preparando reproducción…';
+    reproduccionEnCurso=true;
+    try{
+        const token=await obtenerTokenTurnstile();
+        const response=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo,magnet_id:magnetId,file_path:filePath,token})});
+        const result=await response.json().catch(()=>({}));
+        if(!response.ok||!result.url) throw new Error(result.error||'No se pudo preparar la reproducción.');
+        abrirVLC(result.url);
     }catch(error){console.error('Error de reproducción:',error);alert(error.message||'No se pudo iniciar la reproducción.');}
     finally{
         reproduccionEnCurso=false;
@@ -590,9 +580,7 @@ function crearTemporada(temporada,index){
             currentSeasonIndex=index;
             currentEpisodeIndex=epIndex;
             updateSelected();
-            programarPrecarga('episode',ep,false);
         });
-        item.addEventListener('pointerdown',()=>programarPrecarga('episode',ep,true));
 
         item.addEventListener('click',event=>{
             event.preventDefault();
