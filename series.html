@@ -71,6 +71,37 @@ outline:none!important;box-shadow:none!important
 .search-container{right:15px;top:15px}
 .search-input.active{width:170px}
 }
+
+/* CARATULAS GRANDES - DISEÑO ADAPTABLE */
+.movie-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  gap:18px;
+  align-items:start;
+}
+.movie-row .movie{
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:2 / 3;
+}
+.movie-row .movie img{
+  display:block;
+  width:100%;
+  height:100%;
+  aspect-ratio:2 / 3;
+  object-fit:cover;
+}
+@media (min-width:1400px){
+  .movie-row{gap:20px;grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+}
+@media (max-width:900px){
+  .movie-row{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+}
+@media (max-width:600px){
+  .movie-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+}
+
 </style>
 </head>
 
