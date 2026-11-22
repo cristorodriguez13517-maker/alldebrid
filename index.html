@@ -1385,17 +1385,20 @@ function limpiarBanner(){
 /* SELECCIONAR CONTENIDO */
 
 function selectMovie(card){
-
     if(!card || card.hidden)return;
+    if(selectedMovie!==card){
+        if(selectedMovie)selectedMovie.classList.remove('selected');
+        selectedMovie=card;
+        card.classList.add('selected');
+    }
+    clearTimeout(window.__sharkHeaderUpdateTimer);
+    window.__sharkHeaderUpdateTimer=setTimeout(()=>{
+        if(selectedMovie===card)renderMovieHeader(card);
+    },110);
+}
 
-    if(selectedMovie === card)return;
-
-    if(selectedMovie)selectedMovie.classList.remove('selected');
-    selectedMovie = card;
-    card.classList.add('selected');
-
-
-    /* BANNER */
+function renderMovieHeader(card){
+/* BANNER */
 
     const banner = card.dataset.banner;
 
@@ -1470,9 +1473,7 @@ function selectMovie(card){
     overviewElement.textContent = card.dataset.overview || '';
 
     info.classList.add('visible');
-
 }
-
 
 /* TARJETAS VISIBLES */
 
