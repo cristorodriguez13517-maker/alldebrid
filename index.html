@@ -1388,14 +1388,11 @@ function selectMovie(card){
 
     if(!card || card.hidden)return;
 
+    if(selectedMovie === card)return;
+
+    if(selectedMovie)selectedMovie.classList.remove('selected');
     selectedMovie = card;
-
-
-    movieRow.querySelectorAll('.movie').forEach(movie=>{
-
-        movie.classList.toggle('selected',movie === card);
-
-    });
+    card.classList.add('selected');
 
 
     /* BANNER */
@@ -1496,7 +1493,7 @@ function columns(){
 
     if(window.innerWidth <= 900)return 5;
 
-    return 8;
+    return 7;
 
 }
 
@@ -1516,11 +1513,11 @@ function scrollToCard(card){
 
     if(rect.top < topLimit){
 
-        window.scrollBy(0,rect.top - topLimit);
+        window.scrollBy({top:rect.top - topLimit,left:0,behavior:'instant'});
 
     }else if(rect.bottom > bottomLimit){
 
-        window.scrollBy(0,rect.bottom - bottomLimit);
+        window.scrollBy({top:rect.bottom - bottomLimit,left:0,behavior:'instant'});
 
     }
 
