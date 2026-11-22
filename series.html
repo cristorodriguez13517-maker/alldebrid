@@ -647,15 +647,20 @@ function renderSeries(){
 }
 
 function selectSeries(card){
-    if(!card||card.hidden)return;
+    if(!card || card.hidden)return;
+    if(selectedSeries!==card){
+        if(selectedSeries)selectedSeries.classList.remove('selected');
+        selectedSeries=card;
+        card.classList.add('selected');
+    }
+    clearTimeout(window.__sharkHeaderUpdateTimer);
+    window.__sharkHeaderUpdateTimer=setTimeout(()=>{
+        if(selectedSeries===card)renderSeriesHeader(card);
+    },110);
+}
 
-    if(selectedSeries===card)return;
-
-    if(selectedSeries)selectedSeries.classList.remove('selected');
-    selectedSeries=card;
-    card.classList.add('selected');
-
-    header.style.backgroundImage=card.dataset.banner
+function renderSeriesHeader(card){
+header.style.backgroundImage=card.dataset.banner
         ?'url("'+card.dataset.banner+'")'
         :'none';
 
