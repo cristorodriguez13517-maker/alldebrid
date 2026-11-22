@@ -188,6 +188,54 @@ outline:none!important;box-shadow:none!important
   .overview{font-size:11px;max-height:54px}
 }
 
+
+/* AJUSTE: CABECERA FIJA Y CARATULAS COMPACTAS */
+.header{
+  position:fixed!important;
+  top:0!important;
+  left:0!important;
+  right:0!important;
+  width:100%!important;
+  height:320px!important;
+  min-height:320px!important;
+  z-index:999!important;
+  box-sizing:border-box;
+}
+.content{
+  margin-top:320px!important;
+  position:relative;
+  z-index:1;
+}
+.movie-row{
+  display:grid!important;
+  grid-template-columns:repeat(8,105px)!important;
+  gap:12px!important;
+  align-items:start;
+}
+.movie-row .movie{
+  display:block!important;
+  width:105px!important;
+  min-width:105px!important;
+  max-width:105px!important;
+  height:160px!important;
+  aspect-ratio:auto!important;
+}
+.movie-row .movie img{
+  display:block!important;
+  width:105px!important;
+  height:160px!important;
+  aspect-ratio:auto!important;
+  object-fit:cover!important;
+}
+@media(max-width:900px){
+  .movie-row{grid-template-columns:repeat(5,105px)!important;gap:12px!important}
+}
+@media(max-width:600px){
+  .header{height:260px!important;min-height:260px!important}
+  .content{margin-top:260px!important}
+  .movie-row{grid-template-columns:repeat(3,105px)!important;gap:10px!important}
+}
+
 </style>
 </head>
 
